@@ -61,6 +61,18 @@ build CMakeFiles/RDFPanda_Storage.dir/InputParser.cpp.obj: CXX_COMPILER__RDFPand
   OBJECT_DIR = CMakeFiles\RDFPanda_Storage.dir
   OBJECT_FILE_DIR = CMakeFiles\RDFPanda_Storage.dir
 
+build CMakeFiles/RDFPanda_Storage.dir/TripleStore.cpp.obj: CXX_COMPILER__RDFPanda_Storage_Debug G$:/codes/RDFPanda/RDFPanda-Storage/TripleStore.cpp || cmake_object_order_depends_target_RDFPanda_Storage
+  DEP_FILE = CMakeFiles\RDFPanda_Storage.dir\TripleStore.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles\RDFPanda_Storage.dir
+  OBJECT_FILE_DIR = CMakeFiles\RDFPanda_Storage.dir
+
+build CMakeFiles/RDFPanda_Storage.dir/DatalogEngine.cpp.obj: CXX_COMPILER__RDFPanda_Storage_Debug G$:/codes/RDFPanda/RDFPanda-Storage/DatalogEngine.cpp || cmake_object_order_depends_target_RDFPanda_Storage
+  DEP_FILE = CMakeFiles\RDFPanda_Storage.dir\DatalogEngine.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles\RDFPanda_Storage.dir
+  OBJECT_FILE_DIR = CMakeFiles\RDFPanda_Storage.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target RDFPanda_Storage
@@ -69,7 +81,7 @@ build CMakeFiles/RDFPanda_Storage.dir/InputParser.cpp.obj: CXX_COMPILER__RDFPand
 #############################################
 # Link the executable RDFPanda_Storage.exe
 
-build RDFPanda_Storage.exe: CXX_EXECUTABLE_LINKER__RDFPanda_Storage_Debug CMakeFiles/RDFPanda_Storage.dir/main.cpp.obj CMakeFiles/RDFPanda_Storage.dir/InputParser.cpp.obj
+build RDFPanda_Storage.exe: CXX_EXECUTABLE_LINKER__RDFPanda_Storage_Debug CMakeFiles/RDFPanda_Storage.dir/main.cpp.obj CMakeFiles/RDFPanda_Storage.dir/InputParser.cpp.obj CMakeFiles/RDFPanda_Storage.dir/TripleStore.cpp.obj CMakeFiles/RDFPanda_Storage.dir/DatalogEngine.cpp.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\RDFPanda_Storage.dir
@@ -130,6 +142,20 @@ build tests/CMakeFiles/Storage_Tests.dir/__/InputParser.cpp.obj: CXX_COMPILER__S
   OBJECT_DIR = tests\CMakeFiles\Storage_Tests.dir
   OBJECT_FILE_DIR = tests\CMakeFiles\Storage_Tests.dir\__
 
+build tests/CMakeFiles/Storage_Tests.dir/__/TripleStore.cpp.obj: CXX_COMPILER__Storage_Tests_Debug G$:/codes/RDFPanda/RDFPanda-Storage/TripleStore.cpp || cmake_object_order_depends_target_Storage_Tests
+  DEP_FILE = tests\CMakeFiles\Storage_Tests.dir\__\TripleStore.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -isystem G:/codes/RDFPanda/RDFPanda-Storage/tests/lib/include -isystem G:/codes/RDFPanda/RDFPanda-Storage/tests/lib
+  OBJECT_DIR = tests\CMakeFiles\Storage_Tests.dir
+  OBJECT_FILE_DIR = tests\CMakeFiles\Storage_Tests.dir\__
+
+build tests/CMakeFiles/Storage_Tests.dir/__/DatalogEngine.cpp.obj: CXX_COMPILER__Storage_Tests_Debug G$:/codes/RDFPanda/RDFPanda-Storage/DatalogEngine.cpp || cmake_object_order_depends_target_Storage_Tests
+  DEP_FILE = tests\CMakeFiles\Storage_Tests.dir\__\DatalogEngine.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -isystem G:/codes/RDFPanda/RDFPanda-Storage/tests/lib/include -isystem G:/codes/RDFPanda/RDFPanda-Storage/tests/lib
+  OBJECT_DIR = tests\CMakeFiles\Storage_Tests.dir
+  OBJECT_FILE_DIR = tests\CMakeFiles\Storage_Tests.dir\__
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target Storage_Tests
@@ -138,7 +164,7 @@ build tests/CMakeFiles/Storage_Tests.dir/__/InputParser.cpp.obj: CXX_COMPILER__S
 #############################################
 # Link the executable tests\Storage_Tests.exe
 
-build tests/Storage_Tests.exe: CXX_EXECUTABLE_LINKER__Storage_Tests_Debug tests/CMakeFiles/Storage_Tests.dir/test_input_parser.cpp.obj tests/CMakeFiles/Storage_Tests.dir/__/InputParser.cpp.obj | lib/libgtest.a lib/libgtest_main.a lib/libgtest.a || lib/libgtest.a lib/libgtest_main.a
+build tests/Storage_Tests.exe: CXX_EXECUTABLE_LINKER__Storage_Tests_Debug tests/CMakeFiles/Storage_Tests.dir/test_input_parser.cpp.obj tests/CMakeFiles/Storage_Tests.dir/__/InputParser.cpp.obj tests/CMakeFiles/Storage_Tests.dir/__/TripleStore.cpp.obj tests/CMakeFiles/Storage_Tests.dir/__/DatalogEngine.cpp.obj | lib/libgtest.a lib/libgtest_main.a lib/libgtest.a || lib/libgtest.a lib/libgtest_main.a
   FLAGS = -g
   LINK_LIBRARIES = lib/libgtest.a  lib/libgtest_main.a  lib/libgtest.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = tests\CMakeFiles\Storage_Tests.dir

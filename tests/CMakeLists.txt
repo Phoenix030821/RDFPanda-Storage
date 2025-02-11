@@ -7,7 +7,7 @@ add_subdirectory(lib)
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 # 添加测试文件
-add_executable(Storage_Tests test_input_parser.cpp ../InputParser.cpp)
+add_executable(Storage_Tests test_input_parser.cpp ../InputParser.cpp ../TripleStore.cpp ../DatalogEngine.cpp ../DatalogEngine.h)
 
 # 链接 Google Test 库
 target_link_libraries(Storage_Tests gtest gtest_main)
