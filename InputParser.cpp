@@ -10,6 +10,9 @@ std::vector<Triple> InputParser::parseNTriples(const std::string& filename) {
     // std::cout << "Parsing file: " << filename << std::endl;
     std::string line;
     std::regex tripleRegex(R"(<([^>]+)> <([^>]+)> (\"[^\"]*\"|<[^>]+>|_:.*) \.)");
+    // 主语： <uri>
+    // 谓语： <uri>
+    // 宾语： <uri> 或 "literal" 或 _:blankNode
 
     while (std::getline(file, line)) {
         // std::cout << line << std::endl;
@@ -34,6 +37,10 @@ std::vector<Triple> InputParser::parseTurtle(const std::string& filename) {
     // std::regex tripleRegex(R"((<[^>]+>|_:.*)\s+(<[^>]+>)\s+(\"[^\"]*\"|<[^>]+>|_:.*)\s*\.)");
     // std::regex tripleRegex(R"((<[^>]+>|_:.*|[^:]+:[^ ]+)\s+(<[^>]+>|[^:]+:[^ ]+)\s+(\"[^\"]*\"|<[^>]+>|_:.*)\s*\.)");
     std::regex tripleRegex(R"((<[^>]+>|_:.*|[^:]+:[^ ]+)\s+(<[^>]+>|[^:]+:[^ ]+)\s+(\"[^\"]*\"|<[^>]+>|_:.*|[^:]+:[^ ]+)\s*\.)");
+    // 主语：_:blankNode 或 prefix:term 或 <uri>
+    // 谓语：prefix:term 或 <uri>
+    // 宾语：_:blankNode 或 prefix:term 或 <uri> 或 "literal"
+
 
     // 正则表达式匹配前缀声明
     std::regex prefixRegex(R"(@prefix\s+([^:]+):\s+<([^>]+)>\s*\.)");

@@ -9,4 +9,6 @@
 
 ex:Alice rdf:type ex:Person .
 ex:Bob rdf:type ex:Person .
-ex:Alice ex:knows ex:Bob .
+#ex:Alice ex:knows ex:Bob .
+ex:Alice ex:friendOf ex:Bob .
+ex:Bob ex:friendOf ex:Claire .

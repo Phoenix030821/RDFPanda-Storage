@@ -5,7 +5,9 @@
 #include <vector>
 #include <tuple>
 
-using Triple = std::tuple<std::string, std::string, std::string>;
+#include "TripleStore.h"
+
+// using Triple = std::tuple<std::string, std::string, std::string>;
 
 class InputParser {
 public:

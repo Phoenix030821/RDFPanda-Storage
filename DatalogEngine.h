@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <map>
 
 #include "TripleStore.h"
 
@@ -18,6 +19,10 @@ public:
 
 private:
     std::vector<Triple> applyRule(const Rule& rule);
+    bool matchTriple(const Triple& triple, const Triple& pattern, std::map<std::string, std::string>& variableBindings);
+    Triple instantiateTriple(const Triple& triple, const std::map<std::string, std::string>& variableBindings);
+    bool isVariable(const std::string& str);
+    std::string getElem(const Triple& triple, int i);
 };
 
 
