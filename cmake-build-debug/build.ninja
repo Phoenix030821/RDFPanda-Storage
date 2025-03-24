@@ -73,6 +73,12 @@ build CMakeFiles/RDFPanda_Storage.dir/DatalogEngine.cpp.obj: CXX_COMPILER__RDFPa
   OBJECT_DIR = CMakeFiles\RDFPanda_Storage.dir
   OBJECT_FILE_DIR = CMakeFiles\RDFPanda_Storage.dir
 
+build CMakeFiles/RDFPanda_Storage.dir/Trie.cpp.obj: CXX_COMPILER__RDFPanda_Storage_Debug G$:/codes/RDFPanda/RDFPanda-Storage/Trie.cpp || cmake_object_order_depends_target_RDFPanda_Storage
+  DEP_FILE = CMakeFiles\RDFPanda_Storage.dir\Trie.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles\RDFPanda_Storage.dir
+  OBJECT_FILE_DIR = CMakeFiles\RDFPanda_Storage.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target RDFPanda_Storage
@@ -81,7 +87,7 @@ build CMakeFiles/RDFPanda_Storage.dir/DatalogEngine.cpp.obj: CXX_COMPILER__RDFPa
 #############################################
 # Link the executable RDFPanda_Storage.exe
 
-build RDFPanda_Storage.exe: CXX_EXECUTABLE_LINKER__RDFPanda_Storage_Debug CMakeFiles/RDFPanda_Storage.dir/main.cpp.obj CMakeFiles/RDFPanda_Storage.dir/InputParser.cpp.obj CMakeFiles/RDFPanda_Storage.dir/TripleStore.cpp.obj CMakeFiles/RDFPanda_Storage.dir/DatalogEngine.cpp.obj
+build RDFPanda_Storage.exe: CXX_EXECUTABLE_LINKER__RDFPanda_Storage_Debug CMakeFiles/RDFPanda_Storage.dir/main.cpp.obj CMakeFiles/RDFPanda_Storage.dir/InputParser.cpp.obj CMakeFiles/RDFPanda_Storage.dir/TripleStore.cpp.obj CMakeFiles/RDFPanda_Storage.dir/DatalogEngine.cpp.obj CMakeFiles/RDFPanda_Storage.dir/Trie.cpp.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\RDFPanda_Storage.dir

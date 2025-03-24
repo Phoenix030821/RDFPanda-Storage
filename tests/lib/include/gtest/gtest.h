@@ -2250,7 +2250,7 @@ GTEST_DISABLE_MSC_WARNINGS_POP_()  // 4805 4100
 // tests registered with the same `test_suite_name` must return the same
 // fixture type. This is checked at runtime.
 //
-// The framework will infer the fixture class from the factory and will call
+// The framework will reason the fixture class from the factory and will call
 // the `SetUpTestSuite` and `TearDownTestSuite` for it.
 //
 // Must be called before `RUN_ALL_TESTS()` is invoked, otherwise behavior is

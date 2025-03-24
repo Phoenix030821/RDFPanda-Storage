@@ -116,3 +116,35 @@ std::vector<Triple> InputParser::parseCSV(const std::string& filename) {
 
     return triples;
 }
+
+std::vector<Rule> InputParser::parseDatalogFromFile(const std::string &filename) {
+    std::vector<Rule> rules;
+    std::ifstream file(filename);
+    std::string line;
+    std::regex ruleRegex(R"((\w+\([^)]+\)) :- (.+)\.)");
+    std::regex tripleRegex(R"((\w+)\(([^,]+), ([^)]+)\))");
+
+    while (std::getline(file, line)) {
+        std::smatch ruleMatch;
+        if (std::regex_match(line, ruleMatch, ruleRegex)) {
+            std::string headStr = ruleMatch[1].str();
+            std::string bodyStr = ruleMatch[2].str();
+
+            std::smatch headMatch;
+            std::regex_match(headStr, headMatch, tripleRegex);
+            Triple head(headMatch[1].str(), headMatch[2].str(), headMatch[3].str());
+
+            std::vector<Triple> body;
+            std::sregex_iterator bodyBegin(bodyStr.begin(), bodyStr.end(), tripleRegex);
+            std::sregex_iterator bodyEnd;
+            for (std::sregex_iterator i = bodyBegin; i != bodyEnd; ++i) {
+                const std::smatch& bodyMatch = *i;
+                body.emplace_back(bodyMatch[1].str(), bodyMatch[2].str(), bodyMatch[3].str());
+            }
+
+            rules.emplace_back("", body, head);
+        }
+    }
+
+    return rules;
+}

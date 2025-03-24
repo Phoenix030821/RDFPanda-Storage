@@ -16,6 +16,9 @@ void TripleStore::addTriple(const Triple& triple) {
     subject_index[triple.subject].push_back(index);
     predicate_index[triple.predicate].push_back(index);
     object_index[triple.object].push_back(index);
+
+    // update: 使用Trie树优化
+    trie.insert(triple);
 }
 
 std::vector<Triple> TripleStore::queryBySubject(const std::string& subject) {

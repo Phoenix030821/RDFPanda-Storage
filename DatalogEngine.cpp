@@ -3,7 +3,7 @@
 #include <iostream>
 #include "DatalogEngine.h"
 
-void DatalogEngine::infer() {
+void DatalogEngine::reason() {
     bool newFactAdded = false;
     do {
         // 重置标志
@@ -11,6 +11,9 @@ void DatalogEngine::infer() {
 
         // 根据自底向上，遍历规则，逐条应用
         for (const auto& rule : rules) {
+
+            ////////////// 旧版本代码 //////////////
+            /*
             // 应用当前规则
             std::vector<Triple> inferredTriples = applyRule(rule);
             // 将新事实加入存储
@@ -23,6 +26,25 @@ void DatalogEngine::infer() {
                     // std::cout << "New fact added: " << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
                 }
             }
+            */
+            //////////////////////////////////////
+
+            ////////////// leapfrogTriejoin版本 //////////////
+            std::vector<Triple> newFacts;
+            leapfrogTriejoin(store.getTrieRoot(), rule, newFacts);
+
+            if (!newFacts.empty()) {
+                for (const auto& triple : newFacts) {
+                    if (std::find(store.getAllTriples().begin(), store.getAllTriples().end(), triple) == store.getAllTriples().end()) {
+                        // 若存储结构中不存在，则将当前事实加入，并标记有新事实加入
+                        store.addTriple(triple);
+                        newFactAdded = true;
+
+                        // std::cout << "New fact added: " << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+                    }
+                }
+            }
+
         }
     } while (newFactAdded);  // 若有新事实加入，则继续推理，否则结束
 }
@@ -165,4 +187,61 @@ bool DatalogEngine::isVariable(const std::string& term) {
 std::string DatalogEngine::getElem(const Triple& triple, int i) {
     // 根据i返回三元组的主语(0)、谓语(1)或宾语(2)
     return (i == 0) ? triple.subject : (i == 1) ? triple.predicate : triple.object;
+}
+
+// 递归实现 Leapfrog Triejoin：
+void DatalogEngine::leapfrogTriejoin(TrieNode* trieRoot, const Rule& rule, std::vector<Triple>& newFacts) {
+    std::vector<std::vector<TrieIterator*>> iterators;
+
+    // 为规则 body 中的每个三元组创建 Trie 迭代器
+    for (const Triple& condition : rule.body) {
+        TrieIterator* it = new TrieIterator(trieRoot);
+        it->seek(condition.predicate);  // 只查找匹配的谓语
+        if (!it->atEnd()) {
+            iterators.push_back({it});
+        } else {
+            delete it;
+        }
+    }
+
+    if (iterators.size() != rule.body.size()) {
+        // 规则的 body 没有完整匹配，无法推导新事实
+        return;
+    }
+
+    std::vector<std::string> binding;
+    join_recursive(iterators, rule, 0, binding, newFacts);
+
+    // 释放迭代器
+    for (auto& list : iterators) {
+        for (TrieIterator* it : list) {
+            delete it;
+        }
+    }
+}
+
+void DatalogEngine::join_recursive(std::vector<std::vector<TrieIterator *>> &iterators, const Rule &rule, int level,
+                                   std::vector<std::string> &binding, std::vector<Triple> &newFacts) {
+    if (level >= rule.body.size()) {
+        // level已经到达body的最后一个三元组，当所有 body 条件都匹配后，生成新的 Triple
+        std::string newSubject = binding[0];  // 变量替换规则
+        std::string newPredicate = rule.head.predicate;
+        std::string newObject = binding[1];  // 变量替换规则
+
+        newFacts.emplace_back(newSubject, newPredicate, newObject);
+        return;
+    }
+
+    // 当前层的 Leapfrog Join
+    LeapfrogJoin lf(iterators[level]);
+    while (!lf.atEnd()) {
+        std::string key = lf.key();
+        binding.push_back(key);
+
+        // 进入下一层
+        join_recursive(iterators, rule, level + 1, binding, newFacts);
+
+        // binding.pop_back();
+        lf.next();
+    }
 }

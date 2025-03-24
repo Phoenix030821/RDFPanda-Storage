@@ -58,6 +58,7 @@ void TestQueryBySubject() {
     }
 }
 
+//// 测试用，测试简单推理功能
 void TestInfer() {
     InputParser parser;
     TripleStore store;
@@ -87,14 +88,14 @@ void TestInfer() {
             Triple{"?x", "http://example.org/knows", "?z"}
     );
 
-    // rules.push_back(rule1);
-    rules.push_back(rule2);
+    rules.push_back(rule1);
+    // rules.push_back(rule2);
 
     // 创建DatalogEngine实例
     DatalogEngine engine(store, rules);
 
     // 执行推理
-    engine.infer();
+    engine.reason();
 
     // 查询推理结果
     std::vector<Triple> queryResult = store.queryByPredicate("http://example.org/knows");
@@ -103,9 +104,23 @@ void TestInfer() {
     }
 }
 
+//// 测试用，解析并打印Datalog文件
+void TestDatalogParser() {
+    InputParser parser;
+    std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/ruleExample.dl");
+    for (const auto& rule : rules) {
+        std::cout << rule.name << std::endl;
+        for (const auto& triple : rule.body) {
+            std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+        }
+        std::cout << "=> " << rule.head.subject << " " << rule.head.predicate << " " << rule.head.object << std::endl;
+    }
+}
+
 int main() {
 
     TestInfer();
+    // TestDatalogParser();
 
     return 0;
 }

@@ -14,6 +14,9 @@ public:
     std::vector<Triple> parseNTriples(const std::string& filename);
     std::vector<Triple> parseTurtle(const std::string& filename);
     std::vector<Triple> parseCSV(const std::string& filename);
+
+    std::vector<Rule> parseDatalogFromFile(const std::string& filename);
+    std::vector<Rule> parseDatalogFromConsole(const std::string& datalogString);
 };
 
 #endif //RDFPANDA_STORAGE_INPUTPARSER_H
