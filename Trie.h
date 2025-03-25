@@ -74,14 +74,14 @@ private:
 // TrieIterator：对 TrieNode 的子节点进行遍历，提供类似迭代器的接口
 class TrieIterator {
 public:
-    TrieNode* node; // 当前所在节点
+    TrieNode* node; // 当前所在节点，初始一般为root
     std::map<std::string, TrieNode*>::iterator it;
     std::map<std::string, TrieNode*>::iterator end;
 
     TrieIterator(TrieNode* n) : node(n) {
         if (node) {
-            it = node->children.begin();
-            end = node->children.end();
+            it = node->children.begin(); // 初始指向第一个子节点
+            end = node->children.end(); // 结束标记，指向最后一个子节点的下一个位置
         }
     }
 

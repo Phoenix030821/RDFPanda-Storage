@@ -1,4 +1,4 @@
-# Install script for directory: G:/codes/RDFPanda/RDFPanda-Storage/tests/lib
+# Install script for directory: C:/projects/RDFPanda-Storage/tests/lib
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -32,8 +32,8 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
-# Set default install directory permissions.
+# Set path to fallback-tool for dependency-resolution.
 if(NOT DEFINED CMAKE_OBJDUMP)
-  set(CMAKE_OBJDUMP "C:/Users/zhuyi/AppData/Local/JetBrains/Toolbox/apps/CLion/ch-0/223.8617.54/bin/mingw/bin/objdump.exe")
+  set(CMAKE_OBJDUMP "C:/Users/Magikarp/AppData/Local/Programs/CLion/bin/mingw/bin/objdump.exe")
 endif()
 
