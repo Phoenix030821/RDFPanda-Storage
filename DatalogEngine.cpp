@@ -195,12 +195,12 @@ void DatalogEngine::leapfrogTriejoin(TrieNode* trieRoot, const Rule& rule, std::
 
     // 为规则 body 中的每个三元组创建 Trie 迭代器
     for (const Triple& condition : rule.body) {
-        TrieIterator* it = new TrieIterator(trieRoot);
-        it->seek(condition.predicate);  // 只查找匹配的谓语
+        TrieIterator* it = new TrieIterator(trieRoot); // 从根节点开始
+        it->seek(condition.predicate);  // 在根节点的子结点中查找匹配的谓语
         if (!it->atEnd()) {
-            iterators.push_back({it});
+            iterators.push_back({it}); // 如果到最后一个谓语为止找到了指定谓语，将对应迭代器加入列表
         } else {
-            delete it;
+            delete it; // 否则释放迭代器
         }
     }
 

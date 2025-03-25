@@ -121,7 +121,7 @@ public:
     bool done;   // 标记是否结束
 
     LeapfrogJoin(std::vector<TrieIterator*>& its) : iterators(its), p(0), done(false) {
-        // 对所有迭代器按当前 key 进行排序
+        // 对所有迭代器按当前 key 从小到大排序
         std::sort(iterators.begin(), iterators.end(), [](TrieIterator* a, TrieIterator* b) {
             return a->key() < b->key();
         });
