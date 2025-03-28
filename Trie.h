@@ -2,11 +2,11 @@
 #define RDFPANDA_STORAGE_TRIE_H
 
 
-#include <iostream>
 #include <string>
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <iostream>
 
 // Triple 和 Rule 类定义
 class Triple {
@@ -52,6 +52,7 @@ public:
 };
 
 // Trie 类，按 PSO 顺序存储三元组
+// update: 按 PSO 和 POS 两种顺序存储三元组
 class Trie {
 public:
     TrieNode* root;
@@ -63,7 +64,8 @@ public:
         delete root;
     }
 
-    void insert(const Triple& triple);
+    void insertPSO(const Triple& triple);
+    void insertPOS(const Triple& triple);
     void printAll();
 
 private:
@@ -74,14 +76,14 @@ private:
 // TrieIterator：对 TrieNode 的子节点进行遍历，提供类似迭代器的接口
 class TrieIterator {
 public:
-    TrieNode* node; // 当前所在节点，初始一般为root
+    TrieNode* node; // 当前所在节点
     std::map<std::string, TrieNode*>::iterator it;
     std::map<std::string, TrieNode*>::iterator end;
 
     TrieIterator(TrieNode* n) : node(n) {
         if (node) {
-            it = node->children.begin(); // 初始指向第一个子节点
-            end = node->children.end(); // 结束标记，指向最后一个子节点的下一个位置
+            it = node->children.begin();
+            end = node->children.end();
         }
     }
 
@@ -113,7 +115,7 @@ public:
     }
 };
 
-// LeapfrogJoin 类：在一组 TrieIterator 上实现“leapfrog”交集查找（适用于单变量 join）
+// LeapfrogJoin类：在一组TrieIterator上实现leapfrog交集查找（适用于单变量join）
 class LeapfrogJoin {
 public:
     std::vector<TrieIterator*> iterators;
@@ -134,6 +136,10 @@ public:
 
     std::string key() const {
         return iterators[p]->key();
+    }
+
+    TrieIterator open() {
+        return iterators[p]->open();
     }
 
     void next() {

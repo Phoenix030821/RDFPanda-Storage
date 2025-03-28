@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <map>
+#include <set>
 
 #include "TripleStore.h"
 
@@ -24,10 +25,24 @@ private:
     bool isVariable(const std::string& str);
     std::string getElem(const Triple& triple, int i);
 
+    void leapfrogTriejoin(TrieNode *psoRoot, TrieNode *posRoot, const Rule &rule, std::vector<Triple> &newFacts);
+
+    void join_by_variable(TrieNode *psoRoot, TrieNode *posRoot, const Rule &rule,
+                          const std::set<std::string> &variables,
+                          const std::map<std::string, std::vector<std::pair<int, int>>> &varPositions,
+                          std::map<std::string, std::string> &bindings, int varIdx, std::vector<Triple> &newFacts);
+
+    std::string substituteVariable(const std::string &term, const std::map<std::string, std::string> &bindings);
+
+
+    /*
     void leapfrogTriejoin(TrieNode* trieRoot, const Rule& rule, std::vector<Triple>& newFacts);
-    void join_recursive(std::vector<std::vector<TrieIterator*>>& iterators,
-                        const Rule& rule, int level,
-                        std::vector<std::string>& binding, std::vector<Triple>& newFacts);
+    void join_recursive(std::vector<TrieIterator*>& iterators,
+                        const Rule& rule, int varIndex,
+                        std::map<std::string, std::string>& binding, std::vector<Triple>& newFacts);
+*/
+
+
 };
 
 
