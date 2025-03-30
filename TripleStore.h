@@ -79,7 +79,8 @@ private:
     // todo: 最初版本先使用vector满足基本功能需求，后续需要优化成更高效的数据结构
     std::vector<Triple> triples;
     // update: 使用Trie树优化
-    Trie trie;
+    Trie triePSO;
+    Trie triePOS;
 
     // 多级索引
     // todo: 最初版本配合主存储的vector，使用unordered_map存储以某string作为主/谓/宾语的所有三元组在vector中的下标，之后需要配合主存储优化
@@ -94,7 +95,8 @@ public:
     std::vector<Triple> queryByObject(const std::string& object);
     const std::vector<Triple>& getAllTriples() const { return triples; }
 
-    TrieNode* getTrieRoot() const { return trie.root; }
+    TrieNode* getTriePSORoot() const { return triePSO.root; }
+    TrieNode* getTriePOSRoot() const { return triePOS.root; }
 };
 
 

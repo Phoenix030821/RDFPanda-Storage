@@ -1,7 +1,7 @@
 #include "Trie.h"
 
 // 插入时采用 PSO 顺序：先插入 predicate，再 subject，最后 object
-void Trie::insert(const Triple& triple) {
+void Trie::insertPSO(const Triple& triple) {
     TrieNode* curr = root;
     // 顺序：predicate, subject, object
     std::vector<std::string> keys = { triple.predicate, triple.subject, triple.object };
@@ -13,6 +13,21 @@ void Trie::insert(const Triple& triple) {
     }
     curr->isEnd = true;
 }
+
+// 插入时采用 POS 顺序：先插入 predicate，再 object，最后 subject
+void Trie::insertPOS(const Triple &triple) {
+    TrieNode* curr = root;
+    // 顺序：predicate, object, subject
+    std::vector<std::string> keys = { triple.predicate, triple.object, triple.subject };
+    for (const auto & key : keys) {
+        if (curr->children.find(key) == curr->children.end()) {
+            curr->children[key] = new TrieNode();
+        }
+        curr = curr->children[key];
+    }
+    curr->isEnd = true;
+}
+
 
 // 仅用于调试，遍历并打印 Trie 中所有存储的三元组
 void Trie::printAll() {

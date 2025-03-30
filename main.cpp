@@ -5,7 +5,6 @@
 #include "InputParser.h"
 #include "TripleStore.h"
 #include "DatalogEngine.h"
-#include "Trie.h" // 测试用，暂时包含Trie.h，后续删除
 
 //// 测试用，打印文件内容
 void printFileContent(const std::string& filename) {
@@ -118,41 +117,10 @@ void TestDatalogParser() {
     }
 }
 
-//// 测试用，使用TrieIterator遍历Trie
-void TestTrieIterator() {
-    Trie trie;
-
-    // 插入三元组
-    trie.insert(Triple("Alice", "knows", "Bob"));
-    trie.insert(Triple("Alice", "likes", "Chocolate"));
-    trie.insert(Triple("Bob", "knows", "Charlie"));
-
-    // 创建 TrieIterator
-    TrieIterator it(trie.root);
-
-    // 遍历 Trie
-    while (!it.atEnd()) {
-        std::cout << "Predicate: " << it.key() << std::endl;
-        TrieIterator subjectIt = it.open();
-        while (!subjectIt.atEnd()) {
-            std::cout << "  Subject: " << subjectIt.key() << std::endl;
-            TrieIterator objectIt = subjectIt.open();
-            while (!objectIt.atEnd()) {
-                std::cout << "    Object: " << objectIt.key() << std::endl;
-                objectIt.next();
-            }
-            subjectIt.next();
-        }
-        it.next();
-    }
-
-}
-
 int main() {
 
-    // TestInfer();
+    TestInfer();
     // TestDatalogParser();
-    TestTrieIterator();
 
     return 0;
 }
