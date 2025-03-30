@@ -157,136 +157,6 @@ std::string DatalogEngine::getElem(const Triple& triple, int i) {
     return (i == 0) ? triple.subject : (i == 1) ? triple.predicate : triple.object;
 }
 
-/*
-// 递归实现 Leapfrog Triejoin：
-void DatalogEngine::leapfrogTriejoin(TrieNode* trieRoot, const Rule& rule, std::vector<Triple>& newFacts) {
-    std::vector<TrieIterator*> iterators;
-
-    // 为规则 body 中的每个三元组创建 Trie 迭代器
-    for (const Triple& condition : rule.body) {
-        TrieIterator* it = new TrieIterator(trieRoot);
-        it->seek(condition.predicate);  // 只查找匹配的谓语
-        if (!it->atEnd()) {
-            TrieIterator tmp = it->open();
-            iterators.push_back(&tmp);
-        } else {
-            delete it;
-        }
-    }
-
-    if (iterators.size() != rule.body.size()) {
-        // 规则的 body 没有完整匹配，无法推导新事实
-        return;
-    }
-
-    std::map<std::string, std::string> binding;
-    join_recursive(iterators, rule, 0, binding, newFacts);
-
-    // 释放迭代器
-    // for (auto& list : iterators) {
-    //     for (TrieIterator* it : list) {
-    //         delete it;
-    //     }
-    // }
-    for (TrieIterator* it : iterators) {
-        delete it;
-    }
-
-}
-
-// void DatalogEngine::join_recursive(std::vector<std::vector<TrieIterator *>> &iterators, const Rule &rule, int level,
-//                                    std::vector<std::string> &binding, std::vector<Triple> &newFacts) {
-//     if (level >= rule.body.size()) {
-//         // level已经到达body的最后一个三元组，当所有body条件都匹配后，生成新的Triple
-//         std::string newSubject = binding[0];  // 变量替换规则
-//         std::string newPredicate = rule.head.predicate;
-//         std::string newObject = binding[1];  // 变量替换规则
-//
-//         newFacts.emplace_back(newSubject, newPredicate, newObject);
-//         return;
-//     }
-//
-//     // 当前层的 Leapfrog Join
-//     LeapfrogJoin lf(iterators[level]);
-//     while (!lf.atEnd()) {
-//         std::string key = lf.key();
-//         const Triple& pattern = rule.body[level];
-//
-//         // 根据当前Triple模式决定将key作为谓语、主语还是宾语
-//         if (isVariable(pattern.predicate) && binding.size() == 0) {
-//             // 谓语层
-//             binding.push_back(key);
-//         } else if (isVariable(pattern.subject) && binding.size() == 1) {
-//             // 主语层
-//             TrieIterator subjectIterator = lf.open();
-//             while (!subjectIterator.atEnd()) {
-//                 binding.push_back(subjectIterator.key());
-//                 join_recursive(iterators, rule, level + 1, binding, newFacts);
-//                 binding.pop_back();
-//                 subjectIterator.next();
-//             }
-//         } else if (isVariable(pattern.object) && binding.size() == 2) {
-//             // 宾语层
-//             TrieIterator objectIterator = lf.open();
-//             while (!objectIterator.atEnd()) {
-//                 binding.push_back(objectIterator.key());
-//                 join_recursive(iterators, rule, level + 1, binding, newFacts);
-//                 binding.pop_back();
-//                 objectIterator.next();
-//             }
-//         }
-//
-//         lf.next();
-//     }
-// }
-
-void DatalogEngine::join_recursive(std::vector<TrieIterator *> &iterators, const Rule &rule, int varIndex,
-                                   std::map<std::string, std::string> &binding, std::vector<Triple> &newFacts) {
-    if (varIndex >= rule.body.size()) {
-        // 当所有变量都匹配后，生成新的Triple
-        std::string newSubject = binding[rule.head.subject];
-        std::string newPredicate = rule.head.predicate;
-        std::string newObject = binding[rule.head.object];
-
-        newFacts.emplace_back(newSubject, newPredicate, newObject);
-        return;
-    }
-
-    // 当前变量的 Leapfrog Join
-    LeapfrogJoin lf(iterators);
-    while (!lf.atEnd()) {
-        std::string key = lf.key();
-        const Triple& pattern = rule.body[varIndex];
-
-        // 根据当前Triple模式决定将key作为谓语、主语还是宾语
-        if (isVariable(pattern.predicate) && binding.find(pattern.predicate) == binding.end()) {
-            // 谓语层
-            binding[pattern.predicate] = key;
-        } else if (isVariable(pattern.subject) && binding.find(pattern.subject) == binding.end()) {
-            // 主语层
-            TrieIterator subjectIterator = lf.open();
-            while (!subjectIterator.atEnd()) {
-                binding[pattern.subject] = subjectIterator.key();
-                join_recursive(iterators, rule, varIndex + 1, binding, newFacts);
-                binding.erase(pattern.subject);
-                subjectIterator.next();
-            }
-        } else if (isVariable(pattern.object) && binding.find(pattern.object) == binding.end()) {
-            // 宾语层
-            TrieIterator objectIterator = lf.open();
-            while (!objectIterator.atEnd()) {
-                binding[pattern.object] = objectIterator.key();
-                join_recursive(iterators, rule, varIndex + 1, binding, newFacts);
-                binding.erase(pattern.object);
-                objectIterator.next();
-            }
-        }
-
-        lf.next();
-    }
-}
-*/
-
 void DatalogEngine::leapfrogTriejoin(TrieNode* psoRoot, TrieNode* posRoot, const Rule& rule, std::vector<Triple>& newFacts) {
     // 1. 收集规则体中的所有唯一变量
     std::set<std::string> variables;
@@ -316,14 +186,14 @@ void DatalogEngine::leapfrogTriejoin(TrieNode* psoRoot, TrieNode* posRoot, const
 
 void DatalogEngine::join_by_variable(
     TrieNode* psoRoot, TrieNode* posRoot,
-    const Rule& rule,
-    const std::set<std::string>& variables,
-    const std::map<std::string, std::vector<std::pair<int, int>>>& varPositions,
-    std::map<std::string, std::string>& bindings,
+    const Rule& rule,  // 当前规则
+    const std::set<std::string>& variables,  // 当前规则的变量全集
+    const std::map<std::string, std::vector<std::pair<int, int>>>& varPositions,  // 变量 -> [(变量所在三元组模式在规则体中的下标, 主0/谓1/宾2)]
+    std::map<std::string, std::string>& bindings,  // 变量 -> 变量当前的绑定值（常量，未绑定则为空）
     int varIdx,
     std::vector<Triple>& newFacts
 ) {
-    // 所有变量都已绑定，生成新的事实
+    // 当所有变量都已绑定时，生成新的事实
     if (varIdx >= variables.size()) {
         std::string newSubject = substituteVariable(rule.head.subject, bindings);
         std::string newPredicate = substituteVariable(rule.head.predicate, bindings);
@@ -346,41 +216,63 @@ void DatalogEngine::join_by_variable(
         const Triple& triple = rule.body[tripleIdx];
 
         TrieIterator* it = nullptr;
+
         // 根据变量位置选择适当的Trie
         if (position == 0) { // 主语位置
-            it = new TrieIterator(psoRoot);
-            // 对谓语进行seek
-            std::string predValue = substituteVariable(triple.predicate, bindings);
-            it->seek(predValue);
-            if (!it->atEnd() && it->key() == predValue) {
-                TrieIterator subIt = it->open();
-                // 如果宾语已绑定，还需进一步seek
-                if (!isVariable(triple.object) || bindings.find(triple.object) != bindings.end()) {
+            // 如果宾语已绑定，就从posTrie中对应宾语的子节点中查找
+            if (!isVariable(triple.object) || bindings.find(triple.object) != bindings.end()) {
+                it = new TrieIterator(posRoot);
+                // 对谓语进行seek
+                std::string predValue = substituteVariable(triple.predicate, bindings);
+                it->seek(predValue);
+                if (!it->atEnd() && it->key() == predValue) {
+                    // 对已确定的宾语进行seek
+                    TrieIterator objIt = it->open();
                     std::string objValue = substituteVariable(triple.object, bindings);
-                    subIt.seek(objValue);
-                    if (!subIt.atEnd() && subIt.key() == objValue) {
-                        iterators.push_back(new TrieIterator(subIt.open()));
+                    objIt.seek(objValue);
+                    if (!objIt.atEnd() && objIt.key() == objValue) {
+                        iterators.push_back(new TrieIterator(objIt.open()));
                     }
-                } else {
+                }
+            }
+            // 否则，从psoTrie中查找
+            else {
+                it = new TrieIterator(psoRoot);
+                // 对谓语进行seek
+                std::string predValue = substituteVariable(triple.predicate, bindings);
+                it->seek(predValue);
+                if (!it->atEnd() && it->key() == predValue) {
+                    TrieIterator subIt = it->open();
                     iterators.push_back(new TrieIterator(subIt));
                 }
             }
         }
+        // 这里暂时不考虑谓语为变量，即position == 1的情况
         else if (position == 2) { // 宾语位置
-            it = new TrieIterator(posRoot);
-            // 对谓语进行seek
-            std::string predValue = substituteVariable(triple.predicate, bindings);
-            it->seek(predValue);
-            if (!it->atEnd() && it->key() == predValue) {
-                TrieIterator objIt = it->open();
-                // 如果主语已绑定，还需进一步seek
-                if (!isVariable(triple.subject) || bindings.find(triple.subject) != bindings.end()) {
+            // 如果主语已绑定，就从psoTrie中对应主语的子节点中查找
+            if (!isVariable(triple.subject) || bindings.find(triple.subject) != bindings.end()) {
+                it = new TrieIterator(psoRoot);
+                // 对谓语进行seek
+                std::string predValue = substituteVariable(triple.predicate, bindings);
+                it->seek(predValue);
+                if (!it->atEnd() && it->key() == predValue) {
+                    // 对已确定的主语进行seek
+                    TrieIterator subjIt = it->open();
                     std::string subjValue = substituteVariable(triple.subject, bindings);
-                    objIt.seek(subjValue);
-                    if (!objIt.atEnd() && objIt.key() == subjValue) {
-                        iterators.push_back(new TrieIterator(objIt.open()));
+                    subjIt.seek(subjValue);
+                    if (!subjIt.atEnd() && subjIt.key() == subjValue) {
+                        iterators.push_back(new TrieIterator(subjIt.open()));
                     }
-                } else {
+                }
+            }
+            // 否则，从posTrie中查找
+            else {
+                it = new TrieIterator(posRoot);
+                // 对谓语进行seek
+                std::string predValue = substituteVariable(triple.predicate, bindings);
+                it->seek(predValue);
+                if (!it->atEnd() && it->key() == predValue) {
+                    TrieIterator objIt = it->open();
                     iterators.push_back(new TrieIterator(objIt));
                 }
             }
@@ -414,7 +306,7 @@ void DatalogEngine::join_by_variable(
     bindings.erase(currentVar);
 }
 
-// 辅助函数：替换绑定变量
+// 辅助函数：若绑定中存在变量则替换其绑定的值，否则返回原字符串（此时为常量）
 std::string DatalogEngine::substituteVariable(const std::string& term, const std::map<std::string, std::string>& bindings) {
     if (isVariable(term) && bindings.find(term) != bindings.end()) {
         return bindings.at(term);

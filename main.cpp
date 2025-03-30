@@ -82,14 +82,14 @@ void TestInfer() {
             "rule2",
             std::vector<Triple>{
                 // {"?x", "http://example.org/knows", "?y"},
-                {"?x", "http://example.org/friendOf", "?y"},
-                {"?y", "http://example.org/friendOf", "?z"},
+                {"?x", "http://example.org/knows", "?y"},
+                {"?y", "http://example.org/knows", "?z"},
             },
             Triple{"?x", "http://example.org/knows", "?z"}
     );
 
-    rules.push_back(rule1);
-    // rules.push_back(rule2);
+    rules.push_back(rule1);  // 一次迭代
+    rules.push_back(rule2);  // 两次迭代，需要用到rule1的推理结果
 
     // 创建DatalogEngine实例
     DatalogEngine engine(store, rules);
