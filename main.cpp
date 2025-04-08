@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -117,10 +118,40 @@ void TestDatalogParser() {
     }
 }
 
+//// 测试大文件读入
+void TestLargeFile() {
+    InputParser parser;
+    TripleStore store;
+    std::vector<Triple> triples = parser.parseTurtle("input_examples/DAG.ttl");
+    // std::cout << "Total triples: " << triples.size() << std::endl;
+    int count = 0;
+    for (const auto& triple : triples) {
+        // std::cout << count++ << std::endl;
+        store.addTriple(triple);
+    }
+}
+
+//// 计时用
+void startTimer() {
+    // 用结束时间与开始时间相减
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+
+    // 这里调用要测试的函数
+    TestLargeFile();
+
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+
+    // 输出用时
+    std::cout << "Elapsed time: " << elapsed.count() << " seconds" << std::endl;
+}
+
 int main() {
 
-    TestInfer();
+    // TestInfer();
     // TestDatalogParser();
+    // TestLargeFile();
+    startTimer();
 
     return 0;
 }

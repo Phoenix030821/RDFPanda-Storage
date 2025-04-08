@@ -48,7 +48,9 @@ std::vector<Triple> InputParser::parseTurtle(const std::string& filename) {
     // 前缀映射表
     std::map<std::string, std::string> prefixMap;
 
+    int lineNum = 0;
     while (std::getline(file, line)) {
+        // std::cout << lineNum++ << std::endl;
         // 去除行首尾空白字符
         line = std::regex_replace(line, std::regex(R"(^\s+|\s+$)"), "");
 
