@@ -34,8 +34,6 @@ std::vector<Triple> InputParser::parseTurtle(const std::string& filename) {
     std::string line;
 
     // 正则表达式匹配三元组
-    // std::regex tripleRegex(R"((<[^>]+>|_:.*)\s+(<[^>]+>)\s+(\"[^\"]*\"|<[^>]+>|_:.*)\s*\.)");
-    // std::regex tripleRegex(R"((<[^>]+>|_:.*|[^:]+:[^ ]+)\s+(<[^>]+>|[^:]+:[^ ]+)\s+(\"[^\"]*\"|<[^>]+>|_:.*)\s*\.)");
     std::regex tripleRegex(R"((<[^>]+>|_:.*|[^:]+:[^ ]+)\s+(<[^>]+>|[^:]+:[^ ]+)\s+(\"[^\"]*\"|<[^>]+>|_:.*|[^:]+:[^ ]+)\s*\.)");
     // 主语：_:blankNode 或 prefix:term 或 <uri>
     // 谓语：prefix:term 或 <uri>
@@ -62,7 +60,6 @@ std::vector<Triple> InputParser::parseTurtle(const std::string& filename) {
         // 匹配前缀声明
         std::smatch prefixMatch;
         if (std::regex_match(line, prefixMatch, prefixRegex)) {
-            // std::cout << "Prefix declaration: " << prefixMatch[1].str() << " -> " << prefixMatch[2].str() << std::endl;
             std::string prefixName = prefixMatch[1].str();
             std::string prefixUri = prefixMatch[2].str();
             prefixMap[prefixName] = prefixUri;
@@ -123,25 +120,72 @@ std::vector<Rule> InputParser::parseDatalogFromFile(const std::string &filename)
     std::vector<Rule> rules;
     std::ifstream file(filename);
     std::string line;
-    std::regex ruleRegex(R"((\w+\([^)]+\)) :- (.+)\.)");
-    std::regex tripleRegex(R"((\w+)\(([^,]+), ([^)]+)\))");
+
+    // 正则表达式匹配 PREFIX 声明
+    std::regex prefixRegex(R"(PREFIX\s+([^:]+):\s+<([^>]+)>)");
+    // 正则表达式匹配规则（支持有无前缀的情况）
+    std::regex ruleRegex(R"(([\w:]+\([^)]+\)) :- (.+)\.)");
+    std::regex tripleRegex(R"(([\w:]+)\(([^,]+), ([^)]+)\))");
+
+    // 前缀映射表
+    std::map<std::string, std::string> prefixMap;
 
     while (std::getline(file, line)) {
+        // 去除行首尾空白字符
+        line = std::regex_replace(line, std::regex(R"(^\s+|\s+$)"), "");
+
+        // 跳过空行和注释
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+
+        // 匹配 PREFIX 声明
+        std::smatch prefixMatch;
+        if (std::regex_match(line, prefixMatch, prefixRegex)) {
+            std::string prefixName = prefixMatch[1].str();
+            std::string prefixUri = prefixMatch[2].str();
+            prefixMap[prefixName] = prefixUri;
+            continue;
+        }
+
+        // 匹配规则
         std::smatch ruleMatch;
         if (std::regex_match(line, ruleMatch, ruleRegex)) {
             std::string headStr = ruleMatch[1].str();
             std::string bodyStr = ruleMatch[2].str();
 
-            std::smatch headMatch;
-            std::regex_match(headStr, headMatch, tripleRegex);
-            Triple head(headMatch[1].str(), headMatch[2].str(), headMatch[3].str());
+            // 展开前缀的辅助函数
+            auto expandPrefix = [&prefixMap](const std::string& term) -> std::string {
+                size_t colonPos = term.find(':');
+                if (colonPos != std::string::npos) {
+                    std::string prefix = term.substr(0, colonPos);
+                    if (prefixMap.find(prefix) != prefixMap.end()) {
+                        return prefixMap[prefix] + term.substr(colonPos + 1);
+                    }
+                }
+                return term; // 如果没有前缀，直接返回原始值
+            };
 
+            // 解析规则头部
+            std::smatch headMatch;
+            auto matchResult = std::regex_match(headStr, headMatch, tripleRegex);
+            Triple head(
+                headMatch[2].str(),
+                expandPrefix(headMatch[1].str()),
+                headMatch[3].str()
+            );
+
+            // 解析规则体
             std::vector<Triple> body;
             std::sregex_iterator bodyBegin(bodyStr.begin(), bodyStr.end(), tripleRegex);
             std::sregex_iterator bodyEnd;
             for (std::sregex_iterator i = bodyBegin; i != bodyEnd; ++i) {
                 const std::smatch& bodyMatch = *i;
-                body.emplace_back(bodyMatch[1].str(), bodyMatch[2].str(), bodyMatch[3].str());
+                body.emplace_back(
+                    bodyMatch[2].str(),
+                    expandPrefix(bodyMatch[1].str()),
+                    bodyMatch[3].str()
+                );
             }
 
             rules.emplace_back("", body, head);

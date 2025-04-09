@@ -1,0 +1,4 @@
+PREFIX p: <http://dag.org#>
+
+p:path(?X, ?Y) :- p:edge(?X, ?Y) .
+p:path(?X, ?Z) :- p:path(?X, ?Y), p:path(?Y, ?Z) .

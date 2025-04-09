@@ -108,7 +108,8 @@ void TestInfer() {
 //// 测试用，解析并打印Datalog文件
 void TestDatalogParser() {
     InputParser parser;
-    std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/ruleExample.dl");
+    // std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/ruleExample.dl");
+    std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/DAG-R.dl");
     for (const auto& rule : rules) {
         std::cout << rule.name << std::endl;
         for (const auto& triple : rule.body) {
@@ -129,6 +130,13 @@ void TestLargeFile() {
         // std::cout << count++ << std::endl;
         store.addTriple(triple);
     }
+
+    std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/DAG-R.dl");
+
+    DatalogEngine engine(store, rules);
+    engine.reason();
+    // std::vector<Triple> queryResult = store.queryBySubject("")
+
 }
 
 //// 计时用

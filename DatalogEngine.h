@@ -13,17 +13,22 @@ class DatalogEngine {
 private:
     TripleStore& store;
     std::vector<Rule> rules;
+    std::map<std::string, std::vector<size_t>> rulesMap; // 谓语 -> 规则下标
 
 public:
-    DatalogEngine(TripleStore& store, const std::vector<Rule>& rules) : store(store), rules(rules) {}
+    DatalogEngine(TripleStore& store, const std::vector<Rule>& rules) : store(store), rules(rules) {
+        initiateRulesMap();
+    }
     void reason();
 
 private:
-    std::vector<Triple> applyRule(const Rule& rule);
-    bool matchTriple(const Triple& triple, const Triple& pattern, std::map<std::string, std::string>& variableBindings);
-    Triple instantiateTriple(const Triple& triple, const std::map<std::string, std::string>& variableBindings);
+    // std::vector<Triple> applyRule(const Rule& rule);
+    // bool matchTriple(const Triple& triple, const Triple& pattern, std::map<std::string, std::string>& variableBindings);
+    // Triple instantiateTriple(const Triple& triple, const std::map<std::string, std::string>& variableBindings);
     bool isVariable(const std::string& str);
-    std::string getElem(const Triple& triple, int i);
+    // std::string getElem(const Triple& triple, int i);
+
+    void initiateRulesMap();
 
     void leapfrogTriejoin(TrieNode *psoRoot, TrieNode *posRoot, const Rule &rule, std::vector<Triple> &newFacts);
 
