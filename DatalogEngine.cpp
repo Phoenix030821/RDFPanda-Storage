@@ -15,15 +15,16 @@ void DatalogEngine::initiateRulesMap() {
             std::string predicate = triple.predicate;
 
             if (rulesMap.find(predicate) == rulesMap.end()) {
-                rulesMap[predicate] = std::vector<size_t>();
+                // 如果当前谓语不在map中，则添加
+                rulesMap[predicate] = std::vector<std::pair<size_t, size_t>>();  // 规则下标，规则体中谓语下标
             }
 
-            // 由于按照下标遍历，故每个vector中最后一个元素最大，只需检测是否小于当前规则下标即可防止重复
-            if (!rulesMap[predicate].empty() && rulesMap[predicate].back() >= &rule - &rules[0]) {
-                continue;  // 已存在当前规则下标
-            }
-            // 向map中谓语对应的规则下标列表中添加当前规则的下标
-            rulesMap[predicate].push_back(&rule - &rules[0]);  // 规则下标
+            // // 由于按照下标遍历，故每个vector中最后一个元素最大，只需检测是否小于当前规则下标即可防止重复
+            // if (!rulesMap[predicate].empty() && rulesMap[predicate].back().first >= &rule - &rules[0]) {
+            //     continue;  // 已存在当前规则下标
+            // }
+            // 向map中谓语对应的规则下标列表中添加当前规则的下标以及该谓语在规则体中的下标
+            rulesMap[predicate].emplace_back(&rule - &rules[0], &triple - &rule.body[0]);
 
         }
     }
@@ -66,7 +67,7 @@ bool DatalogEngine::isVariable(const std::string& term) {
 }
 
 void DatalogEngine::leapfrogTriejoin(TrieNode* psoRoot, TrieNode* posRoot, const Rule& rule, std::vector<Triple>& newFacts) {
-    // 1. 收集规则体中的所有唯一变量
+
     std::set<std::string> variables;
     std::map<std::string, std::vector<std::pair<int, int>>> varPositions; // 变量 -> [(triple_idx, position)]
 
