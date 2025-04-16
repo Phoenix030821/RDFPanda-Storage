@@ -3,6 +3,10 @@
 #include <fstream>
 #include <regex>
 #include <sstream>
+#include <thread>
+#include <future>
+#include <vector>
+#include <mutex>
 
 std::vector<Triple> InputParser::parseNTriples(const std::string& filename) {
     std::vector<Triple> triples;
@@ -28,70 +32,170 @@ std::vector<Triple> InputParser::parseNTriples(const std::string& filename) {
     return triples;
 }
 
+// std::vector<Triple> InputParser::parseTurtle(const std::string& filename) {
+//     std::vector<Triple> triples;
+//     std::ifstream file(filename);
+//     std::string line;
+//
+//     // 正则表达式匹配三元组
+//     std::regex tripleRegex(R"((<[^>]+>|_:.*|[^:]+:[^ ]+)\s+(<[^>]+>|[^:]+:[^ ]+)\s+(\"[^\"]*\"|<[^>]+>|_:.*|[^:]+:[^ ]+)\s*\.)");
+//     // 主语：_:blankNode 或 prefix:term 或 <uri>
+//     // 谓语：prefix:term 或 <uri>
+//     // 宾语：_:blankNode 或 prefix:term 或 <uri> 或 "literal"
+//
+//
+//     // 正则表达式匹配前缀声明
+//     std::regex prefixRegex(R"(@prefix\s+([^:]+):\s+<([^>]+)>\s*\.)");
+//
+//     // 前缀映射表
+//     std::map<std::string, std::string> prefixMap;
+//
+//     int lineNum = 0;
+//     while (std::getline(file, line)) {
+//         // std::cout << lineNum++ << std::endl;
+//         // 去除行首尾空白字符
+//         line = std::regex_replace(line, std::regex(R"(^\s+|\s+$)"), "");
+//
+//         // 跳过空行和注释
+//         if (line.empty() || line[0] == '#') {
+//             continue;
+//         }
+//
+//         // 匹配前缀声明
+//         std::smatch prefixMatch;
+//         if (std::regex_match(line, prefixMatch, prefixRegex)) {
+//             std::string prefixName = prefixMatch[1].str();
+//             std::string prefixUri = prefixMatch[2].str();
+//             prefixMap[prefixName] = prefixUri;
+//             continue;
+//         }
+//
+//         // 匹配三元组
+//         std::smatch tripleMatch;
+//         if (std::regex_match(line, tripleMatch, tripleRegex)) {
+//             // std::cout << "Triple: " << tripleMatch[0].str() << std::endl;
+//             std::string subject = tripleMatch[1].str();
+//             std::string predicate = tripleMatch[2].str();
+//             std::string object = tripleMatch[3].str();
+//
+//             // 展开前缀（如果存在）
+//             auto expandPrefix = [&prefixMap](const std::string& term) -> std::string {
+//                 size_t colonPos = term.find(':');
+//                 if (colonPos != std::string::npos) {
+//                     std::string prefix = term.substr(0, colonPos);
+//                     if (prefixMap.find(prefix) != prefixMap.end()) {
+//                         return prefixMap[prefix] + term.substr(colonPos + 1);
+//                     }
+//                 }
+//                 return term;
+//             };
+//
+//             subject = expandPrefix(subject);
+//             predicate = expandPrefix(predicate);
+//             object = expandPrefix(object);
+//
+//             triples.emplace_back(subject, predicate, object);
+//         }
+//     }
+//
+//     return triples;
+// }
+
 std::vector<Triple> InputParser::parseTurtle(const std::string& filename) {
     std::vector<Triple> triples;
     std::ifstream file(filename);
     std::string line;
 
-    // 正则表达式匹配三元组
+    // 正则表达式匹配三元组和前缀声明
     std::regex tripleRegex(R"((<[^>]+>|_:.*|[^:]+:[^ ]+)\s+(<[^>]+>|[^:]+:[^ ]+)\s+(\"[^\"]*\"|<[^>]+>|_:.*|[^:]+:[^ ]+)\s*\.)");
-    // 主语：_:blankNode 或 prefix:term 或 <uri>
-    // 谓语：prefix:term 或 <uri>
-    // 宾语：_:blankNode 或 prefix:term 或 <uri> 或 "literal"
-
-
-    // 正则表达式匹配前缀声明
     std::regex prefixRegex(R"(@prefix\s+([^:]+):\s+<([^>]+)>\s*\.)");
 
-    // 前缀映射表
+    // 全局前缀映射表
     std::map<std::string, std::string> prefixMap;
 
-    int lineNum = 0;
+    // 第一步：预处理前缀声明
     while (std::getline(file, line)) {
-        // std::cout << lineNum++ << std::endl;
-        // 去除行首尾空白字符
         line = std::regex_replace(line, std::regex(R"(^\s+|\s+$)"), "");
-
-        // 跳过空行和注释
         if (line.empty() || line[0] == '#') {
             continue;
         }
 
-        // 匹配前缀声明
         std::smatch prefixMatch;
         if (std::regex_match(line, prefixMatch, prefixRegex)) {
             std::string prefixName = prefixMatch[1].str();
             std::string prefixUri = prefixMatch[2].str();
             prefixMap[prefixName] = prefixUri;
-            continue;
         }
 
-        // 匹配三元组
+        // 当匹配到三元组时说明已经读到数据部分，停止读取前缀声明
         std::smatch tripleMatch;
         if (std::regex_match(line, tripleMatch, tripleRegex)) {
-            // std::cout << "Triple: " << tripleMatch[0].str() << std::endl;
-            std::string subject = tripleMatch[1].str();
-            std::string predicate = tripleMatch[2].str();
-            std::string object = tripleMatch[3].str();
-
-            // 展开前缀（如果存在）
-            auto expandPrefix = [&prefixMap](const std::string& term) -> std::string {
-                size_t colonPos = term.find(':');
-                if (colonPos != std::string::npos) {
-                    std::string prefix = term.substr(0, colonPos);
-                    if (prefixMap.find(prefix) != prefixMap.end()) {
-                        return prefixMap[prefix] + term.substr(colonPos + 1);
-                    }
-                }
-                return term;
-            };
-
-            subject = expandPrefix(subject);
-            predicate = expandPrefix(predicate);
-            object = expandPrefix(object);
-
-            triples.emplace_back(subject, predicate, object);
+            break;
         }
+    }
+
+    // 重置文件流
+    file.clear();
+    file.seekg(0, std::ios::beg);
+
+    // 第二步：多线程处理三元组
+    std::vector<std::string> lines;
+    while (std::getline(file, line)) {
+        lines.push_back(line);
+    }
+
+    const size_t numThreads = std::thread::hardware_concurrency();
+    size_t chunkSize = lines.size() / numThreads;
+    std::vector<std::vector<Triple>> threadResults(numThreads);
+    std::mutex resultMutex;
+
+    auto parseChunk = [&](size_t start, size_t end, size_t threadIndex) {
+        std::vector<Triple> localTriples;
+        for (size_t i = start; i < end; ++i) {
+            std::string line = lines[i];
+            line = std::regex_replace(line, std::regex(R"(^\s+|\s+$)"), "");
+
+            if (line.empty() || line[0] == '#' || std::regex_match(line, prefixRegex)) {
+                continue;
+            }
+
+            std::smatch tripleMatch;
+            if (std::regex_match(line, tripleMatch, tripleRegex)) {
+                auto expandPrefix = [&prefixMap](const std::string& term) -> std::string {
+                    size_t colonPos = term.find(':');
+                    if (colonPos != std::string::npos) {
+                        std::string prefix = term.substr(0, colonPos);
+                        if (prefixMap.find(prefix) != prefixMap.end()) {
+                            return prefixMap[prefix] + term.substr(colonPos + 1);
+                        }
+                    }
+                    return term;
+                };
+
+                std::string subject = expandPrefix(tripleMatch[1].str());
+                std::string predicate = expandPrefix(tripleMatch[2].str());
+                std::string object = expandPrefix(tripleMatch[3].str());
+                localTriples.emplace_back(subject, predicate, object);
+            }
+        }
+
+        std::lock_guard<std::mutex> lock(resultMutex);
+        threadResults[threadIndex] = std::move(localTriples);
+    };
+
+    std::vector<std::thread> threads;
+    for (size_t i = 0; i < numThreads; ++i) {
+        size_t start = i * chunkSize;
+        size_t end = (i == numThreads - 1) ? lines.size() : start + chunkSize;
+        threads.emplace_back(parseChunk, start, end, i);
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    for (const auto& threadResult : threadResults) {
+        triples.insert(triples.end(), threadResult.begin(), threadResult.end());
     }
 
     return triples;

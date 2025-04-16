@@ -134,8 +134,7 @@ void TestLargeFile() {
     std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/DAG-R.dl");
 
     DatalogEngine engine(store, rules);
-    engine.reason();
-    // std::vector<Triple> queryResult = store.queryBySubject("")
+    // engine.reason();
 
 }
 
