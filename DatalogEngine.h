@@ -13,7 +13,8 @@ class DatalogEngine {
 private:
     TripleStore& store;
     std::vector<Rule> rules;
-    std::map<std::string, std::vector<std::pair<size_t, size_t>>> rulesMap; // 谓语 -> [规则下标, 规则体中谓语下标]
+    // std::map<std::string, std::vector<std::pair<size_t, size_t>>> rulesMap; // 谓语 -> [规则下标, 规则体中谓语下标]
+    std::map<std::string, std::vector< size_t>> rulesMap; // 谓语 -> [规则下标]
 
 public:
     DatalogEngine(TripleStore& store, const std::vector<Rule>& rules) : store(store), rules(rules) {

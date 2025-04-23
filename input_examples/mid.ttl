@@ -1,0 +1,121 @@
+@prefix ex: <http://example.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# 新增人物
+ex:Mia rdf:type ex:Person .
+ex:Nina rdf:type ex:Person .
+ex:Oscar rdf:type ex:Person .
+ex:Paul rdf:type ex:Person .
+ex:Quinn rdf:type ex:Person .
+ex:Rita rdf:type ex:Person .
+ex:Sam rdf:type ex:Person .
+ex:Tina rdf:type ex:Person .
+ex:Uma rdf:type ex:Person .
+ex:Victor rdf:type ex:Person .
+ex:Wendy rdf:type ex:Person .
+ex:Xavier rdf:type ex:Person .
+
+# 性别
+ex:Mia ex:gender ex:Female .
+ex:Nina ex:gender ex:Female .
+ex:Oscar ex:gender ex:Male .
+ex:Paul ex:gender ex:Male .
+ex:Quinn ex:gender ex:Female .
+ex:Rita ex:gender ex:Female .
+ex:Sam ex:gender ex:Male .
+ex:Tina ex:gender ex:Female .
+ex:Uma ex:gender ex:Female .
+ex:Victor ex:gender ex:Male .
+ex:Wendy ex:gender ex:Female .
+ex:Xavier ex:gender ex:Male .
+
+# 家庭关系扩展
+ex:Grace ex:parentOf ex:Mia .
+ex:Mia ex:parentOf ex:Nina .
+ex:Nina ex:parentOf ex:Oscar .
+ex:Oscar ex:parentOf ex:Paul .
+ex:Paul ex:parentOf ex:Quinn .
+ex:Rita ex:parentOf ex:Sam .
+ex:Sam ex:parentOf ex:Tina .
+ex:Tina ex:parentOf ex:Uma .
+ex:Uma ex:parentOf ex:Victor .
+ex:Victor ex:parentOf ex:Wendy .
+ex:Wendy ex:parentOf ex:Xavier .
+
+# 教育背景扩展
+ex:Mia ex:studiedAt ex:Berkeley .
+ex:Nina ex:studiedAt ex:NYU .
+ex:Oscar ex:studiedAt ex:UCLA .
+ex:Paul ex:studiedAt ex:Columbia .
+ex:Quinn ex:studiedAt ex:UChicago .
+ex:Rita ex:studiedAt ex:Berkeley .
+ex:Sam ex:studiedAt ex:Princeton .
+ex:Tina ex:studiedAt ex:Yale .
+ex:Uma ex:studiedAt ex:Oxford .
+ex:Victor ex:studiedAt ex:Cambridge .
+ex:Wendy ex:studiedAt ex:UCLA .
+ex:Xavier ex:studiedAt ex:Harvard .
+
+# 教育地理
+ex:Berkeley ex:locatedIn ex:BerkeleyCA .
+ex:NYU ex:locatedIn ex:NewYork .
+ex:UCLA ex:locatedIn ex:LosAngeles .
+ex:Columbia ex:locatedIn ex:NewYork .
+ex:UChicago ex:locatedIn ex:Chicago .
+ex:Princeton ex:locatedIn ex:PrincetonNJ .
+
+# 工作信息扩展
+ex:Mia ex:worksAt ex:Facebook .
+ex:Nina ex:worksAt ex:Netflix .
+ex:Oscar ex:worksAt ex:Spotify .
+ex:Paul ex:worksAt ex:Microsoft .
+ex:Quinn ex:worksAt ex:Amazon .
+ex:Rita ex:worksAt ex:NASA .
+ex:Sam ex:worksAt ex:Tesla .
+ex:Tina ex:worksAt ex:Meta .
+ex:Uma ex:worksAt ex:SpaceX .
+ex:Victor ex:worksAt ex:Meta .
+ex:Wendy ex:worksAt ex:Google .
+ex:Xavier ex:worksAt ex:Apple .
+
+# 公司地理信息
+ex:Facebook ex:locatedIn ex:MenloPark .
+ex:Netflix ex:locatedIn ex:LosGatos .
+ex:Spotify ex:locatedIn ex:Stockholm .
+ex:Microsoft ex:locatedIn ex:Redmond .
+ex:SpaceX ex:locatedIn ex:Hawthorne .
+ex:LosGatos ex:type ex:City .
+
+# 居住地扩展
+ex:Mia ex:livesIn ex:MenloPark .
+ex:Nina ex:livesIn ex:LosGatos .
+ex:Oscar ex:livesIn ex:LosAngeles .
+ex:Paul ex:livesIn ex:NewYork .
+ex:Quinn ex:livesIn ex:Seattle .
+ex:Rita ex:livesIn ex:Houston .
+ex:Sam ex:livesIn ex:Austin .
+ex:Tina ex:livesIn ex:MenloPark .
+ex:Uma ex:livesIn ex:Hawthorne .
+ex:Victor ex:livesIn ex:MenloPark .
+ex:Wendy ex:livesIn ex:MountainView .
+ex:Xavier ex:livesIn ex:Cupertino .
+
+# 社交关系扩展
+ex:Mia ex:knows ex:Nina .
+ex:Nina ex:knows ex:Oscar .
+ex:Oscar ex:knows ex:Paul .
+ex:Paul ex:knows ex:Quinn .
+ex:Rita ex:knows ex:Sam .
+ex:Sam ex:knows ex:Tina .
+ex:Tina ex:knows ex:Uma .
+ex:Uma ex:knows ex:Victor .
+ex:Victor ex:knows ex:Wendy .
+ex:Wendy ex:knows ex:Xavier .
+ex:Xavier ex:knows ex:Mia .
+
+# 社交交叉连接
+ex:Nina ex:knows ex:Grace .
+ex:Sam ex:knows ex:Dave .
+ex:Oscar ex:knows ex:Judy .
+ex:Paul ex:knows ex:Bob .
+ex:Victor ex:knows ex:Carol .

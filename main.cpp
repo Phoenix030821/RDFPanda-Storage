@@ -119,7 +119,7 @@ void TestDatalogParser() {
     }
 }
 
-//// 测试大文件读入
+//// 测试大文件读入及推理
 void TestLargeFile() {
     InputParser parser;
     TripleStore store;
@@ -134,7 +134,26 @@ void TestLargeFile() {
     std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/DAG-R.dl");
 
     DatalogEngine engine(store, rules);
-    // engine.reason();
+    engine.reason();
+
+}
+
+//// 测试百到万级三元组和两位数规则
+void TestMidFile() {
+    InputParser parser;
+    TripleStore store;
+    std::vector<Triple> triples = parser.parseTurtle("input_examples/mid-k.ttl");
+    // std::cout << "Total triples: " << triples.size() << std::endl;
+    int count = 0;
+    for (const auto& triple : triples) {
+        // std::cout << count++ << std::endl;
+        store.addTriple(triple);
+    }
+
+    std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/mid.dl");
+
+    DatalogEngine engine(store, rules);
+    engine.reason();
 
 }
 
@@ -144,7 +163,8 @@ void startTimer() {
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
     // 这里调用要测试的函数
-    TestLargeFile();
+    // TestLargeFile();
+    TestMidFile();
 
     std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;

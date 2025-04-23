@@ -1,0 +1,10 @@
+PREFIX ex: <http://example.org/>
+
+ex:isParent(?X, ?Y) :- ex:parentOf(?X, ?Y) .
+ex:isGrandparent(?X, ?Z) :- ex:parentOf(?X, ?Y), ex:isParent(?Y, ?Z) .
+ex:isGreatGrandparent(?X, ?Z) :- ex:parentOf(?X, ?Y), ex:isGrandparent(?Y, ?Z) .
+ex:isSibling(?X, ?Y) :- ex:parentOf(?P, ?X), ex:parentOf(?P, ?Y) .
+ex:isFriend(?X, ?Y) :- ex:knows(?X, ?Y) .
+ex:isFriend(?Y, ?X) :- ex:knows(?X, ?Y) .
+ex:worksInCity(?X, ?C) :- ex:worksAt(?X, ?O), ex:locatedIn(?O, ?C) .
+ex:isLocalWorker(?X) :- ex:livesIn(?X, ?C), ex:worksInCity(?X, ?C) .

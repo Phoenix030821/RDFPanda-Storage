@@ -2,6 +2,10 @@
 #include <map>
 #include <set>
 #include <iostream>
+#include <thread>
+#include <vector>
+#include <mutex>
+#include <future>
 #include "DatalogEngine.h"
 
 void DatalogEngine::initiateRulesMap() {
@@ -16,49 +20,93 @@ void DatalogEngine::initiateRulesMap() {
 
             if (rulesMap.find(predicate) == rulesMap.end()) {
                 // 如果当前谓语不在map中，则添加
-                rulesMap[predicate] = std::vector<std::pair<size_t, size_t>>();  // 规则下标，规则体中谓语下标
+                // rulesMap[predicate] = std::vector<std::pair<size_t, size_t>>();  // 规则下标，规则体中谓语下标
+                rulesMap[predicate] = std::vector<size_t>();  // 规则下标
             }
 
-            // // 由于按照下标遍历，故每个vector中最后一个元素最大，只需检测是否小于当前规则下标即可防止重复
+            // 由于按照下标遍历，故每个vector中最后一个元素最大，只需检测是否小于当前规则下标即可防止重复
+            if (!rulesMap[predicate].empty() && rulesMap[predicate].back() >= &rule - &rules[0]) {
+                continue;  // 已存在当前规则下标
+            }
             // if (!rulesMap[predicate].empty() && rulesMap[predicate].back().first >= &rule - &rules[0]) {
             //     continue;  // 已存在当前规则下标
             // }
-            // 向map中谓语对应的规则下标列表中添加当前规则的下标以及该谓语在规则体中的下标
-            rulesMap[predicate].emplace_back(&rule - &rules[0], &triple - &rule.body[0]);
+
+            // // 向map中谓语对应的规则下标列表中添加当前规则的下标以及该谓语在规则体中的下标
+            // rulesMap[predicate].emplace_back(&rule - &rules[0], &triple - &rule.body[0]);
+            // 向map中谓语对应的规则下标列表中添加当前规则的下标
+            rulesMap[predicate].emplace_back(&rule - &rules[0]);
 
         }
     }
 }
 
 
+// void DatalogEngine::reason() {
+//     bool newFactAdded = false;
+//     int epoch = 0;
+//     do {
+//         std::cout << epoch++ << std::endl;
+//         // 重置标志
+//         newFactAdded = false;
+//
+//         // 根据自底向上，遍历规则，逐条应用
+//         for (const auto& rule : rules) {
+//             std::vector<Triple> newFacts;
+//             // leapfrogTriejoin(store.getTriePSORoot(), rule, newFacts);
+//             leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, newFacts);
+//
+//             if (!newFacts.empty()) {
+//                 for (const auto& triple : newFacts) {
+//                     if (std::find(store.getAllTriples().begin(), store.getAllTriples().end(), triple) == store.getAllTriples().end()) {
+//                         // 若存储结构中不存在，则将当前事实加入，并标记有新事实加入
+//                         store.addTriple(triple);
+//                         newFactAdded = true;
+//
+//                         // std::cout << "New fact added: " << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+//                     }
+//                 }
+//             }
+//
+//         }
+//     } while (newFactAdded);  // 若有新事实加入，则继续推理，否则结束
+// }
+
 void DatalogEngine::reason() {
     bool newFactAdded = false;
     int epoch = 0;
     do {
-        std::cout << epoch++ << std::endl;
-        // 重置标志
+        std::cout << "Epoch: " << epoch++ << std::endl;
         newFactAdded = false;
 
-        // 根据自底向上，遍历规则，逐条应用
+        // 创建线程池
+        std::vector<std::future<std::vector<Triple>>> futures;
+        std::mutex storeMutex;
+
+        int ruleId = 0;
         for (const auto& rule : rules) {
-            std::vector<Triple> newFacts;
-            // leapfrogTriejoin(store.getTriePSORoot(), rule, newFacts);
-            leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, newFacts);
+            std::cout << "Applying rule: " << ruleId++ << std::endl;
+            // 使用 std::async 异步执行规则
+            futures.push_back(std::async(std::launch::async, [&]() {
+                std::vector<Triple> newFacts;
+                leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, newFacts);
+                return newFacts;
+            }));
+        }
 
-            if (!newFacts.empty()) {
-                for (const auto& triple : newFacts) {
-                    if (std::find(store.getAllTriples().begin(), store.getAllTriples().end(), triple) == store.getAllTriples().end()) {
-                        // 若存储结构中不存在，则将当前事实加入，并标记有新事实加入
-                        store.addTriple(triple);
-                        newFactAdded = true;
-
-                        // std::cout << "New fact added: " << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
-                    }
+        // 收集线程结果并合并
+        for (auto& future : futures) {
+            std::vector<Triple> newFacts = future.get();
+            std::lock_guard<std::mutex> lock(storeMutex);
+            for (const auto& triple : newFacts) {
+                if (std::find(store.getAllTriples().begin(), store.getAllTriples().end(), triple) == store.getAllTriples().end()) {
+                    store.addTriple(triple);
+                    newFactAdded = true;
                 }
             }
-
         }
-    } while (newFactAdded);  // 若有新事实加入，则继续推理，否则结束
+
+    } while (newFactAdded);
 }
 
 bool DatalogEngine::isVariable(const std::string& term) {
