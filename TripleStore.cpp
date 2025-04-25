@@ -2,11 +2,11 @@
 
 void TripleStore::addTriple(const Triple& triple) {
     // 检查是否已存在
-    for (const auto& index : subject_index[triple.subject]) {
-        if (triples[index].predicate == triple.predicate && triples[index].object == triple.object) {
-            return;
-        }
-    }
+    // for (const auto& index : subject_index[triple.subject]) {
+    //     if (triples[index].predicate == triple.predicate && triples[index].object == triple.object) {
+    //         return;
+    //     }
+    // }
 
     // 添加到主存储
     triples.push_back(triple);
@@ -56,4 +56,17 @@ std::vector<Triple> TripleStore::queryByObject(const std::string& object) {
         result.push_back(triples[index]);
     }
     return result;
+}
+
+TrieNode* TripleStore::getNodeByTriple(const Triple& triple) const {
+    // 返回指定三元组的Trie节点
+    TrieNode* node = triePSO.root;
+    std::vector<std::string> keys = { triple.predicate, triple.subject, triple.object };
+    for (const auto & key : keys) {
+        if (node->children.find(key) == node->children.end()) {
+            return nullptr;
+        }
+        node = node->children[key];
+    }
+    return node;
 }

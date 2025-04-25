@@ -9,69 +9,6 @@
 #include "Trie.h"
 
 //// Triple 和 Rule 类已定义在Trie.h中
-//class Triple {
-//public:
-//    std::string subject;
-//    std::string predicate;
-//    std::string object;
-//
-//    Triple(std::string subject, std::string predicate, std::string object)
-//            : subject(std::move(subject)), predicate(std::move(predicate)), object(std::move(object)) {}
-//
-//    bool operator==(const Triple& rhs) const {
-//        return subject == rhs.subject && predicate == rhs.predicate && object == rhs.object;
-//    }
-//
-//    bool operator!=(const Triple& rhs) const {
-//        return !(*this == rhs);
-//    }
-//};
-//
-//class Rule {
-//public:
-//    std::string name;
-//    std::vector<Triple> body;
-//    Triple head;
-//
-//    Rule(std::string  name, const std::vector<Triple>& body, Triple  head)
-//            : name(std::move(name)), body(body), head(std::move(head)) {}
-//};
-
-//class Trie {
-//public:
-//    std::unordered_map<std::string, Trie*> children;
-//    std::vector<size_t> indices;
-//
-//    Trie() = default;
-//    ~Trie() {
-//        for (auto& child : children) {
-//            delete child.second;
-//        }
-//    }
-//
-//    void addTriple(const Triple& triple, size_t index) {
-//        Trie* node = this;
-//        std::vector<std::string> elements = {triple.predicate, triple.subject, triple.object};
-//        for (const auto& elem : elements) {
-//            if (node->children.find(elem) == node->children.end()) {
-//                node->children[elem] = new Trie();
-//            }
-//            node = node->children[elem];
-//        }
-//        node->indices.push_back(index);
-//    }
-//
-//    std::vector<size_t> query(const std::vector<std::string>& elements) const {
-//        const Trie* node = this;
-//        for (const auto& elem : elements) {
-//            if (node->children.find(elem) == node->children.end()) {
-//                return {};
-//            }
-//            node = node->children.at(elem);
-//        }
-//        return node->indices;
-//    }
-//};
 
 class TripleStore {
 private:
@@ -94,6 +31,8 @@ public:
     std::vector<Triple> queryByPredicate(const std::string& predicate);
     std::vector<Triple> queryByObject(const std::string& object);
     const std::vector<Triple>& getAllTriples() const { return triples; }
+
+    TrieNode* getNodeByTriple(const Triple& triple) const;
 
     TrieNode* getTriePSORoot() const { return triePSO.root; }
     TrieNode* getTriePOSRoot() const { return triePOS.root; }

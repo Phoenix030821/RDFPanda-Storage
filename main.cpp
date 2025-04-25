@@ -175,10 +175,10 @@ void startTimer() {
 
 int main() {
 
-    // TestInfer();
+    TestInfer();
     // TestDatalogParser();
     // TestLargeFile();
-    startTimer();
+    // startTimer();
 
     return 0;
 }
