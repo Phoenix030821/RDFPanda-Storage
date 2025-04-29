@@ -30,9 +30,6 @@ void DatalogEngine::initiateRulesMap() {
             // if (!rulesMap[predicate].empty() && rulesMap[predicate].back() >= &rule - &rules[0]) {
             //     continue;  // 已存在当前规则下标
             // }
-            if (!rulesMap[predicate].empty() && rulesMap[predicate].back().first >= &rule - &rules[0]) {
-                continue;  // 已存在当前规则下标
-            }
 
             // 向map中谓语对应的规则下标列表中添加当前规则的下标以及该谓语在规则体中的下标
             rulesMap[predicate].emplace_back(&rule - &rules[0], &triple - &rule.body[0]);
@@ -44,12 +41,12 @@ void DatalogEngine::initiateRulesMap() {
 }
 
 void DatalogEngine::reason() {
-    bool newFactAdded = false;
-    int epoch = 0;
+    // bool newFactAdded = false;
+    // int epoch = 0;
 
     // do {
-    std::cout << "Epoch: " << epoch++ << std::endl;
-    newFactAdded = false;
+    // std::cout << "Epoch: " << epoch++ << std::endl;
+    // newFactAdded = false;
     std::queue<Triple> newFactQueue; // 存储新产生的事实，出队时触发对应规则的应用，并存到事实库中
 
     // 创建线程池
@@ -77,7 +74,7 @@ void DatalogEngine::reason() {
             if (store.getNodeByTriple(triple) == nullptr) {
                 // store.addTriple(triple);
                 newFactQueue.push(triple);
-                newFactAdded = true;
+                // newFactAdded = true;
             }
         }
     }
@@ -141,7 +138,7 @@ void DatalogEngine::reason() {
                         std::lock_guard<std::mutex> lock(storeMutex);
                         if (store.getNodeByTriple(currentTriple) == nullptr) {
                             store.addTriple(currentTriple);
-                            newFactAdded = true;
+                            // newFactAdded = true;
                         }
                     }
                 }
