@@ -81,10 +81,16 @@ std::vector<Triple> InputParser::parseTurtle(const std::string& filename) {
     std::mutex resultMutex;
 
     auto parseChunk = [&](size_t start, size_t end, size_t threadIndex) {
+        // std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();
         std::vector<Triple> localTriples;
+        const char* ws = " \t\n\r";
+
         for (size_t i = start; i < end; ++i) {
             std::string line = lines[i];
-            line = std::regex_replace(line, std::regex(R"(^\s+|\s+$)"), "");
+            // line = std::regex_replace(line, std::regex(R"(^\s+|\s+$)"), "");
+            // 去除行首尾空白字符
+            line.erase(0, line.find_first_not_of(ws));
+            line.erase(line.find_last_not_of(ws) + 1);
 
             if (line.empty() || line[0] == '#' || std::regex_match(line, prefixRegex)) {
                 continue;
@@ -108,10 +114,15 @@ std::vector<Triple> InputParser::parseTurtle(const std::string& filename) {
                 std::string object = expandPrefix(tripleMatch[3].str());
                 localTriples.emplace_back(subject, predicate, object);
             }
+
         }
 
         std::lock_guard<std::mutex> lock(resultMutex);
         threadResults[threadIndex] = std::move(localTriples);
+
+//        std::chrono::high_resolution_clock::time_point endTime = std::chrono::high_resolution_clock::now();
+//        std::chrono::duration<double> elapsedTime = endTime - startTime;
+//        std::cout << "Thread " << threadIndex << " processed " << (end - start) << " lines in " << elapsedTime.count() << " seconds." << std::endl;
     };
 
     std::vector<std::thread> threads;

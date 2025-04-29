@@ -166,14 +166,52 @@ void TestMidFile() {
 
 }
 
+//// 测试百万级别三元组和两位数规则
+void TestMillionTriples() {
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+
+    InputParser parser;
+    TripleStore store;
+
+    std::vector<Triple> triples = parser.parseTurtle("input_examples/data_million.ttl");
+    std::cout << "Total triples: " << triples.size() << std::endl;
+
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "Elapsed time for parsing triples: " << elapsed.count() << " seconds" << std::endl;
+
+    start = std::chrono::high_resolution_clock::now();
+    for (const auto& triple : triples) {
+        store.addTriple(triple);
+    }
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "Elapsed time for storing triples: " << elapsed.count() << " seconds" << std::endl;
+
+    start = std::chrono::high_resolution_clock::now();
+    std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/mid.dl");
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "Elapsed time for parsing rules:   " << elapsed.count() << " seconds" << std::endl;
+
+    start = std::chrono::high_resolution_clock::now();
+    DatalogEngine engine(store, rules);
+    engine.reason();
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "Elapsed time for reasoning:       " << elapsed.count() << " seconds" << std::endl;
+
+}
+
 //// 计时用
 void startTimer() {
     // 用结束时间与开始时间相减
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
     // 这里调用要测试的函数
-    TestLargeFile();
-    // TestMidFile();
+    // TestLargeFile();
+    TestMidFile();
+    // TestMillionTriples();
 
     std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
@@ -187,7 +225,8 @@ int main() {
     // TestInfer();
     // TestDatalogParser();
     // TestLargeFile();
-    startTimer();
+    // startTimer();
+    TestMillionTriples();
 
     return 0;
 }
