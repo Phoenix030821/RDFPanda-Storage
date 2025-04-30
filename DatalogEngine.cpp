@@ -98,6 +98,15 @@ void DatalogEngine::reason() {
             }
         }
 
+        // 将当前事实加入事实库
+        {
+            std::lock_guard<std::mutex> lock(storeMutex);
+            if (store.getNodeByTriple(currentTriple) == nullptr) {
+                store.addTriple(currentTriple);
+                // newFactAdded = true;
+            }
+        }
+
         // 异步处理当前三元组
         std::future<void> future = std::async(std::launch::async, [&, currentTriple]() {
             // 根据rulesMap找到规则
@@ -133,14 +142,14 @@ void DatalogEngine::reason() {
                             }
                         }
                     }
-                    // 将当前事实加入事实库
-                    {
-                        std::lock_guard<std::mutex> lock(storeMutex);
-                        if (store.getNodeByTriple(currentTriple) == nullptr) {
-                            store.addTriple(currentTriple);
-                            // newFactAdded = true;
-                        }
-                    }
+                    // // 将当前事实加入事实库
+                    // {
+                    //     std::lock_guard<std::mutex> lock(storeMutex);
+                    //     if (store.getNodeByTriple(currentTriple) == nullptr) {
+                    //         store.addTriple(currentTriple);
+                    //         // newFactAdded = true;
+                    //     }
+                    // }
                 }
             }
 
@@ -242,6 +251,7 @@ void DatalogEngine::leapfrogTriejoin(
     // todo: 能不能根据varPositions来筛选代入新三元组对应变量后可能产生冲突的三元组模式？需要找出主语和宾语变量都包含在新三元组对应模式中的三元组模式
     // todo: 例如新三元组对应模式为A(?x,?y)，则需要找其他(?x,?y)、(?y,?x)、(?x,?x)、(?y,?y)的模式，并查询代入新值后的三元组是否存在于事实库中
     // todo: 相当于对于两个[(idx, pos)]数组，找出所有idx，使(idx, 0)和(idx, 2)都存在
+    // update: 已实现
 
     for (int i = 0; i < rule.body.size(); i++) {
         const Triple& triple = rule.body[i];
@@ -258,6 +268,10 @@ void DatalogEngine::leapfrogTriejoin(
             variables.insert(triple.object);
             varPositions[triple.object].emplace_back(i, 2); // 2 表示宾语位置
         }
+    }
+
+    if (!checkConflictingTriples(bindings, varPositions, rule)) {
+        return;
     }
 
     // std::map<std::string, std::string> bindings;
@@ -442,4 +456,44 @@ std::string DatalogEngine::substituteVariable(const std::string& term, const std
         return bindings.at(term);
     }
     return term;
+}
+
+bool DatalogEngine::checkConflictingTriples(
+    const std::map<std::string, std::string>& bindings,
+    const std::map<std::string, std::vector<std::pair<int, int>>>& varPositions,
+    const Rule& rule
+) const {
+    // 遍历bindings中的变量
+    for (const auto& [var, value] : bindings) {
+        if (varPositions.find(var) == varPositions.end()) {
+            continue; // 如果变量不在varPositions中，跳过
+        }
+
+        const auto& positions = varPositions.at(var);
+        std::map<int, std::set<int>> idxToPos;
+
+        // 构建idx到pos的映射
+        for (const auto& [idx, pos] : positions) {
+            idxToPos[idx].insert(pos);
+        }
+
+        // 检查是否同时存在(idx, 0)和(idx, 2)
+        for (const auto& [idx, posSet] : idxToPos) {
+            if (posSet.count(0) && posSet.count(2)) {
+                // 构造实际的三元组
+                const Triple& pattern = rule.body[idx];
+                std::string subject = substituteVariable(pattern.subject, bindings);
+                std::string predicate = substituteVariable(pattern.predicate, bindings);
+                std::string object = substituteVariable(pattern.object, bindings);
+
+                Triple actualTriple(subject, predicate, object);
+
+                // 检查三元组是否存在于事实库中
+                if (store.getNodeByTriple(actualTriple) != nullptr) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
 }

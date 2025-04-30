@@ -173,6 +173,7 @@ void TestMillionTriples() {
     InputParser parser;
     TripleStore store;
 
+    // std::vector<Triple> triples = parser.parseTurtle("input_examples/DAG.ttl");
     std::vector<Triple> triples = parser.parseTurtle("input_examples/data_million.ttl");
     std::cout << "Total triples: " << triples.size() << std::endl;
 
@@ -189,6 +190,7 @@ void TestMillionTriples() {
     std::cout << "Elapsed time for storing triples: " << elapsed.count() << " seconds" << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
+    // std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/DAG-R.dl");
     std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/mid.dl");
     end = std::chrono::high_resolution_clock::now();
     elapsed = end - start;

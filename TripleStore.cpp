@@ -2,14 +2,14 @@
 
 void TripleStore::addTriple(const Triple& triple) {
 
-//    // 添加到vector
-//    triples.push_back(triple);
-//    size_t index = triples.size() - 1;
-//
-//    // 更新索引
-//    subject_index[triple.subject].push_back(index);
-//    predicate_index[triple.predicate].push_back(index);
-//    object_index[triple.object].push_back(index);
+    // 添加到vector
+    triples.push_back(triple);
+    size_t index = triples.size() - 1;
+
+    // 更新索引
+    subject_index[triple.subject].push_back(index);
+    predicate_index[triple.predicate].push_back(index);
+    object_index[triple.object].push_back(index);
 
     // update: 使用Trie树优化
     triePSO.insertPSO(triple);

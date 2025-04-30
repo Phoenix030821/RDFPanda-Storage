@@ -40,7 +40,11 @@ private:
                           const std::map<std::string, std::vector<std::pair<int, int>>> &varPositions,
                           std::map<std::string, std::string> &bindings, int varIdx, std::vector<Triple> &newFacts);
 
-    std::string substituteVariable(const std::string &term, const std::map<std::string, std::string> &bindings);
+    static std::string substituteVariable(const std::string &term, const std::map<std::string, std::string> &bindings);
+
+    bool checkConflictingTriples(const std::map<std::string, std::string>& bindings,
+                                    const std::map<std::string, std::vector<std::pair<int, int>>>& varPositions,
+                                    const Rule& rule) const;
 
 
     /*
