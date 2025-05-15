@@ -53,11 +53,14 @@ void DatalogEngine::reason() {
     std::vector<std::future<std::vector<Triple>>> futures;
     std::mutex storeMutex;
 
+    std::atomic<int> reasonCount(0);
+
     // 先进行第一轮推理，初始时没有新事实，遍历规则逐条应用
     // int ruleId = 0;
     for (const auto& rule : rules) {
         // std::cout << "Applying rule: " << ruleId++ << std::endl;
         // 使用 std::async 异步执行规则
+        reasonCount++;
         futures.push_back(std::async(std::launch::async, [&]() {
             std::vector<Triple> newFacts;
             std::map<std::string, std::string> bindings;
@@ -84,6 +87,7 @@ void DatalogEngine::reason() {
     std::mutex queueMutex; // 保护队列的互斥锁
 
     while (!newFactQueue.empty() || activeTaskCount > 0) {
+        reasonCount++;
         Triple currentTriple("", "", ""); // 当前三元组
         {
             std::lock_guard<std::mutex> lock(queueMutex);
@@ -161,78 +165,11 @@ void DatalogEngine::reason() {
         future.get();
     }
 
-    // } while (newFactAdded);
+    // 输出推理完成后的事实库大小
+    std::cout << "Total triples in store:           " << store.getAllTriples().size() << std::endl;
+    // 输出总共推理的次数
+    std::cout << "Total reasoning count:            " << reasonCount.load() << std::endl;
 }
-
-// void DatalogEngine::reason() {
-//     std::queue<Triple> newFactQueue; // 存储新产生的事实
-//     std::mutex queueMutex; // 保护队列的互斥锁
-//     std::mutex storeMutex; // 保护store的互斥锁
-//     std::atomic<int> activeTaskCount(0); // 活动任务计数器
-//
-//     // 初始化队列（可以根据初始规则推理结果填充）
-//     for (const auto& triple : store.getAllTriples()) {
-//         newFactQueue.push(triple);
-//     }
-//
-//     while (!newFactQueue.empty() || activeTaskCount > 0) {
-//         Triple currentTriple("", "", ""); // 当前三元组
-//         {
-//             std::lock_guard<std::mutex> lock(queueMutex);
-//             if (!newFactQueue.empty()) {
-//                 currentTriple = newFactQueue.front();
-//                 newFactQueue.pop();
-//                 activeTaskCount++; // 增加活动任务计数
-//             } else {
-//                 // 队列为空但仍有活动任务，等待其他线程完成
-//                 std::this_thread::yield();
-//                 continue;
-//             }
-//         }
-//
-//         // 异步处理当前三元组
-//         std::async(std::launch::async, [&, currentTriple]() {
-//             // 根据rulesMap找到规则
-//             auto it = rulesMap.find(currentTriple.predicate);
-//             if (it != rulesMap.end()) {
-//                 for (const auto& rulePair : it->second) {
-//                     size_t ruleIdx = rulePair.first;
-//                     size_t patternIdx = rulePair.second;
-//                     const Rule& rule = rules[ruleIdx];
-//                     const Triple& pattern = rule.body[patternIdx];
-//
-//                     // 绑定变量
-//                     std::map<std::string, std::string> bindings;
-//                     if (isVariable(pattern.subject)) {
-//                         bindings[pattern.subject] = currentTriple.subject;
-//                     }
-//                     if (isVariable(pattern.object)) {
-//                         bindings[pattern.object] = currentTriple.object;
-//                     }
-//
-//                     // 调用leapfrogTriejoin推理新事实
-//                     std::vector<Triple> inferredFacts;
-//                     leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, inferredFacts, bindings);
-//
-//                     // 将新事实加入队列
-//                     {
-//                         std::lock_guard<std::mutex> lock(queueMutex);
-//                         for (const auto& fact : inferredFacts) {
-//                             std::lock_guard<std::mutex> storeLock(storeMutex);
-//                             if (store.getNodeByTriple(fact) == nullptr) {
-//                                 store.addTriple(fact);
-//                                 newFactQueue.push(fact);
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//
-//             // 任务完成，减少活动任务计数
-//             activeTaskCount--;
-//         });
-//     }
-// }
 
 bool DatalogEngine::isVariable(const std::string& term) {
     // 判断是否为变量，变量以?开头，如"?x"
@@ -278,49 +215,6 @@ void DatalogEngine::leapfrogTriejoin(
     // 对每个变量进行leapfrog join
     join_by_variable(psoRoot, posRoot, rule, variables, varPositions, bindings, 0, newFacts);
 }
-
-// void DatalogEngine::leapfrogTriejoin(
-//     TrieNode* psoRoot, TrieNode* posRoot,
-//     const Rule& rule,
-//     std::vector<Triple>& newFacts,
-//     std::map<std::string, std::string>& bindings
-// ) {
-//     std::set<std::string> variables;
-//     std::map<std::string, std::vector<std::pair<int, int>>> varPositions;
-//
-//     // 收集变量及其位置
-//     for (int i = 0; i < rule.body.size(); i++) {
-//         const Triple& triple = rule.body[i];
-//         if (isVariable(triple.subject)) {
-//             variables.insert(triple.subject);
-//             varPositions[triple.subject].emplace_back(i, 0);
-//         }
-//         if (isVariable(triple.predicate)) {
-//             variables.insert(triple.predicate);
-//             varPositions[triple.predicate].emplace_back(i, 1);
-//         }
-//         if (isVariable(triple.object)) {
-//             variables.insert(triple.object);
-//             varPositions[triple.object].emplace_back(i, 2);
-//         }
-//     }
-//
-//     // 将已绑定的变量放在最前面
-//     std::vector<std::string> sortedVariables;
-//     for (const auto& var : variables) {
-//         if (bindings.find(var) != bindings.end()) {
-//             sortedVariables.push_back(var); // 已绑定的变量
-//         }
-//     }
-//     for (const auto& var : variables) {
-//         if (bindings.find(var) == bindings.end()) {
-//             sortedVariables.push_back(var); // 未绑定的变量
-//         }
-//     }
-//
-//     // 调用 join_by_variable，跳过已绑定的变量
-//     join_by_variable(psoRoot, posRoot, rule, sortedVariables, varPositions, bindings, sortedVariables.size() - variables.size(), newFacts);
-// }
 
 void DatalogEngine::join_by_variable(
     TrieNode* psoRoot, TrieNode* posRoot,
