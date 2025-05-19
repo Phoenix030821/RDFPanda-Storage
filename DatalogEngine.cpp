@@ -86,6 +86,8 @@ void DatalogEngine::reason() {
     std::atomic<int> activeTaskCount(0); // 活动任务计数器
     std::mutex queueMutex; // 保护队列的互斥锁
 
+    ////////////////////////////////////
+    /*
     while (!newFactQueue.empty() || activeTaskCount > 0) {
         reasonCount++;
         Triple currentTriple("", "", ""); // 当前三元组
@@ -146,14 +148,6 @@ void DatalogEngine::reason() {
                             }
                         }
                     }
-                    // // 将当前事实加入事实库
-                    // {
-                    //     std::lock_guard<std::mutex> lock(storeMutex);
-                    //     if (store.getNodeByTriple(currentTriple) == nullptr) {
-                    //         store.addTriple(currentTriple);
-                    //         // newFactAdded = true;
-                    //     }
-                    // }
                 }
             }
 
@@ -164,6 +158,108 @@ void DatalogEngine::reason() {
         // 确保任务完成
         future.get();
     }
+
+    */
+    /////////////////////////////////////
+
+    std::atomic<bool> done(false);
+    std::condition_variable cv;
+    const auto threadCount = std::thread::hardware_concurrency();
+    std::vector<std::thread> workers;
+
+    // 工作线程
+    auto worker = [&]() {
+        while (true) {
+            // reasonCount++;
+            Triple currentTriple("", "", "");
+            {
+                std::unique_lock<std::mutex> lock(queueMutex);
+                cv.wait(lock, [&] { return !newFactQueue.empty() || done; });
+                if (done && newFactQueue.empty()) break;
+                currentTriple = newFactQueue.front();
+                newFactQueue.pop();
+                activeTaskCount++; // 增加活动任务计数
+                // reasonCount++; // 统计推理次数
+            }
+
+            // 将当前事实加入事实库
+            {
+                std::lock_guard<std::mutex> lock(storeMutex);
+                if (store.getNodeByTriple(currentTriple) == nullptr) {
+                    store.addTriple(currentTriple);
+                    // newFactAdded = true;
+                    // reasonCount++;
+                }
+                reasonCount++;
+            }
+
+            // 处理 currentTriple，推理新事实并加锁入队
+            // 根据rulesMap找到规则
+            auto it = rulesMap.find(currentTriple.predicate);
+            if (it != rulesMap.end()) {
+                for (const auto& rulePair : it->second) {
+                    size_t ruleIdx = rulePair.first;
+                    size_t patternIdx = rulePair.second;
+                    const Rule& rule = rules[ruleIdx];
+                    const Triple& pattern = rule.body[patternIdx];
+
+                    // 绑定变量
+                    std::map<std::string, std::string> bindings;
+                    if (isVariable(pattern.subject)) {
+                        bindings[pattern.subject] = currentTriple.subject;
+                    }
+                    if (isVariable(pattern.object)) {
+                        bindings[pattern.object] = currentTriple.object;
+                    }
+
+                    // 调用leapfrogTriejoin推理新事实
+                    std::vector<Triple> inferredFacts;
+                    leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, inferredFacts, bindings);
+                    // reasonCount++;
+
+                    // 将新事实加入队列
+                    {
+                        std::lock_guard<std::mutex> lock(queueMutex);
+                        for (const auto& fact : inferredFacts) {
+                            // std::lock_guard<std::mutex> storeLock(storeMutex);
+                            if (store.getNodeByTriple(fact) == nullptr) {
+                                // store.addTriple(fact);
+                                newFactQueue.push(fact);
+                                // reasonCount++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 任务完成，减少活动任务计数
+            activeTaskCount--;
+        }
+    };
+
+    // 启动线程池
+    workers.reserve(threadCount);
+    for (int i = 0; i < threadCount; ++i) {
+        workers.emplace_back(worker);
+    }
+
+    // 主线程不断唤醒工作线程
+    while (true) {
+        {
+            std::lock_guard<std::mutex> lock(queueMutex);
+            if (newFactQueue.empty() && activeTaskCount == 0) {
+                break;
+            }
+        }
+        cv.notify_all();
+        std::this_thread::yield();
+    }
+
+    // 结束所有线程
+    done = true;
+    cv.notify_all();
+    for (auto& t : workers) t.join();
+
 
     // 输出推理完成后的事实库大小
     std::cout << "Total triples in store:           " << store.getAllTriples().size() << std::endl;
@@ -389,5 +485,19 @@ bool DatalogEngine::checkConflictingTriples(
             }
         }
     }
+
+    // 检查规则体中是否有只含常量不含变量的三元组模式
+    for (const auto& triple : rule.body) {
+        if (!isVariable(triple.subject) && !isVariable(triple.predicate) && !isVariable(triple.object)) {
+            // 构造实际的三元组
+            Triple actualTriple(triple.subject, triple.predicate, triple.object);
+
+            // 检查三元组是否存在于事实库中
+            if (store.getNodeByTriple(actualTriple) != nullptr) {
+                return false;
+            }
+        }
+    }
+
     return true;
 }

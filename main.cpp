@@ -174,7 +174,7 @@ void TestMillionTriples() {
     TripleStore store;
 
     // std::vector<Triple> triples = parser.parseTurtle("input_examples/DAG.ttl");
-    std::vector<Triple> triples = parser.parseTurtle("input_examples/data_million.ttl");
+    std::vector<Triple> triples = parser.parseTurtle("input_examples/data_10k.ttl");
     std::cout << "Total triples: " << triples.size() << std::endl;
 
     std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();

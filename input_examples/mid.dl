@@ -8,3 +8,7 @@ ex:isFriend(?X, ?Y) :- ex:knows(?X, ?Y) .
 ex:isFriend(?Y, ?X) :- ex:knows(?X, ?Y) .
 ex:worksInCity(?X, ?C) :- ex:worksAt(?X, ?O), ex:locatedIn(?O, ?C) .
 ex:isLocalWorker(?X) :- ex:livesIn(?X, ?C), ex:worksInCity(?X, ?C) .
+
+# ex:knows(?X, ?Z) :- ex:knows(?X, ?Y), ex:knows(?Y, ?Z) .
+# ex:isAncestor(?X, ?Y) :- ex:parentOf(?X, ?Y) .
+# ex:isAncestor(?X, ?Z) :- ex:parentOf(?X, ?Y), ex:isAncestor(?Y, ?Z) .
