@@ -456,7 +456,7 @@ void DatalogEngine::overdeleteDRed(std::vector<Triple> &overdeletedFacts, std::v
                     const Rule& rule = rules[ruleIdx];
                     const Triple& pattern = rule.body[patternIdx];
 
-                    printf("Pattern: (%s, %s, %s)\n", pattern.subject.c_str(), pattern.predicate.c_str(), pattern.object.c_str());
+                    // printf("Pattern: (%s, %s, %s)\n", pattern.subject.c_str(), pattern.predicate.c_str(), pattern.object.c_str());
                     // 绑定变量
                     std::map<std::string, std::string> bindings;
                     if (isVariable(pattern.subject)) {
@@ -653,6 +653,19 @@ void DatalogEngine::join_by_variable(
 
     // 当所有变量都已绑定时，生成新的事实
     if (varIdx >= variables.size()) {
+        //遍历rule的body中的三元组，是否在store中存在
+        for( const auto& triple : rule.body) {
+            const Triple &substitutedTriple = Triple(
+                substituteVariable(triple.subject, bindings),
+                substituteVariable(triple.predicate, bindings),
+                substituteVariable(triple.object, bindings)
+            );
+            // printf("Checking triple: (%s, %s, %s)\n", substitutedTriple.subject.c_str(), substitutedTriple.predicate.c_str(), substitutedTriple.object.c_str());
+            if (store.getNodeByTriple(substitutedTriple) == nullptr) {
+                // 如果三元组不存在，则不生成新事实
+                return;
+            }
+        }
         std::string newSubject = substituteVariable(rule.head.subject, bindings);
         std::string newPredicate = substituteVariable(rule.head.predicate, bindings);
         std::string newObject = substituteVariable(rule.head.object, bindings);

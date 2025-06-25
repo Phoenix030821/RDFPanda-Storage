@@ -75,7 +75,7 @@ void TestInfer() {
             "rule1",
             std::vector<Triple>{
                 {"?x", "http://example.org/friendOf", "?y"},
-                {"?x", "http://example.org/helo", "?y"},
+                // {"?x", "http://example.org/helo", "?y"},
             },
             Triple{"?x", "http://example.org/knows", "?y"}
     );
@@ -299,12 +299,12 @@ void startTimer() {
 
 int main() {
 
-    TestInfer();
+    // TestInfer();
     // TestDatalogParser();
     // TestLargeFile();
     // startTimer();
     // TestMillionTriples();
-    //TestDRed();
+    TestDRed();
 
     return 0;
 }
