@@ -11,16 +11,21 @@
 
 class DatalogEngine {
 private:
+    TripleStore& originalStore;
     TripleStore& store;
     std::vector<Rule> rules;
     std::map<std::string, std::vector<std::pair<size_t, size_t>>> rulesMap; // 谓语 -> [规则下标, 规则体中谓语下标]
     // std::map<std::string, std::vector< size_t>> rulesMap; // 谓语 -> [规则下标]
 
 public:
-    DatalogEngine(TripleStore& store, const std::vector<Rule>& rules) : store(store), rules(rules) {
+    DatalogEngine(TripleStore& store, const std::vector<Rule>& rules) : store(store), originalStore(store), rules(rules) {
         initiateRulesMap();
     }
     void reason();
+
+    void reasonNaive();
+
+    void leapfrogDRed(std::vector<Triple>& deletedFacts, std::vector<Triple>& insertedFacts);
 
 private:
     // std::vector<Triple> applyRule(const Rule& rule);
@@ -35,6 +40,10 @@ private:
                             std::vector<Triple> &newFacts,
                             std::map<std::string, std::string> &bindings);
 
+    void leapfrogTriejoinBackwards(TrieNode *psoRoot, TrieNode *posRoot, const Rule &rule,
+                                    std::vector<Triple> &newFacts,
+                                    std::map<std::string, std::string> &bindings, Triple &currentTriple);
+
     void join_by_variable(TrieNode *psoRoot, TrieNode *posRoot, const Rule &rule,
                           const std::set<std::string> &variables,
                           const std::map<std::string, std::vector<std::pair<int, int>>> &varPositions,
@@ -46,6 +55,9 @@ private:
                                     const std::map<std::string, std::vector<std::pair<int, int>>>& varPositions,
                                     const Rule& rule) const;
 
+    void overdeleteDRed(std::vector<Triple> &overdeletedFacts, std::vector<Triple> deletedFacts);
+
+    void insertDRed(std::vector<Triple> newFacts);
 
     /*
     void leapfrogTriejoin(TrieNode* trieRoot, const Rule& rule, std::vector<Triple>& newFacts);

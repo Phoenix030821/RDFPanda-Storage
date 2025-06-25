@@ -18,6 +18,14 @@ public:
     Triple(std::string subject, std::string predicate, std::string object)
             : subject(std::move(subject)), predicate(std::move(predicate)), object(std::move(object)) {}
 
+    bool operator<(const Triple& rhs) const {
+        if (subject != rhs.subject)
+            return subject < rhs.subject;
+        if (predicate != rhs.predicate)
+            return predicate < rhs.predicate;
+        return object < rhs.object;
+    }
+
     bool operator==(const Triple& rhs) const {
         return subject == rhs.subject && predicate == rhs.predicate && object == rhs.object;
     }
@@ -66,6 +74,8 @@ public:
 
     void insertPSO(const Triple& triple);
     void insertPOS(const Triple& triple);
+    void deletePSO(const Triple& triple);
+    void deletePOS(const Triple& triple);
     void printAll();
 
 private:

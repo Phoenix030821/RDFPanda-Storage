@@ -1,0 +1,32 @@
+[
+{
+  "directory": "C:/Users/Phoenix/Desktop/LeapfrogTrieJoin/RDFPanda-Storage/build",
+  "command": "C:\\mingw64\\bin\\g++.exe   -g -std=gnu++17 -o CMakeFiles\\RDFPanda_Storage.dir\\main.cpp.obj -c C:\\Users\\Phoenix\\Desktop\\LeapfrogTrieJoin\\RDFPanda-Storage\\main.cpp",
+  "file": "C:/Users/Phoenix/Desktop/LeapfrogTrieJoin/RDFPanda-Storage/main.cpp",
+  "output": "CMakeFiles/RDFPanda_Storage.dir/main.cpp.obj"
+},
+{
+  "directory": "C:/Users/Phoenix/Desktop/LeapfrogTrieJoin/RDFPanda-Storage/build",
+  "command": "C:\\mingw64\\bin\\g++.exe   -g -std=gnu++17 -o CMakeFiles\\RDFPanda_Storage.dir\\InputParser.cpp.obj -c C:\\Users\\Phoenix\\Desktop\\LeapfrogTrieJoin\\RDFPanda-Storage\\InputParser.cpp",
+  "file": "C:/Users/Phoenix/Desktop/LeapfrogTrieJoin/RDFPanda-Storage/InputParser.cpp",
+  "output": "CMakeFiles/RDFPanda_Storage.dir/InputParser.cpp.obj"
+},
+{
+  "directory": "C:/Users/Phoenix/Desktop/LeapfrogTrieJoin/RDFPanda-Storage/build",
+  "command": "C:\\mingw64\\bin\\g++.exe   -g -std=gnu++17 -o CMakeFiles\\RDFPanda_Storage.dir\\TripleStore.cpp.obj -c C:\\Users\\Phoenix\\Desktop\\LeapfrogTrieJoin\\RDFPanda-Storage\\TripleStore.cpp",
+  "file": "C:/Users/Phoenix/Desktop/LeapfrogTrieJoin/RDFPanda-Storage/TripleStore.cpp",
+  "output": "CMakeFiles/RDFPanda_Storage.dir/TripleStore.cpp.obj"
+},
+{
+  "directory": "C:/Users/Phoenix/Desktop/LeapfrogTrieJoin/RDFPanda-Storage/build",
+  "command": "C:\\mingw64\\bin\\g++.exe   -g -std=gnu++17 -o CMakeFiles\\RDFPanda_Storage.dir\\DatalogEngine.cpp.obj -c C:\\Users\\Phoenix\\Desktop\\LeapfrogTrieJoin\\RDFPanda-Storage\\DatalogEngine.cpp",
+  "file": "C:/Users/Phoenix/Desktop/LeapfrogTrieJoin/RDFPanda-Storage/DatalogEngine.cpp",
+  "output": "CMakeFiles/RDFPanda_Storage.dir/DatalogEngine.cpp.obj"
+},
+{
+  "directory": "C:/Users/Phoenix/Desktop/LeapfrogTrieJoin/RDFPanda-Storage/build",
+  "command": "C:\\mingw64\\bin\\g++.exe   -g -std=gnu++17 -o CMakeFiles\\RDFPanda_Storage.dir\\Trie.cpp.obj -c C:\\Users\\Phoenix\\Desktop\\LeapfrogTrieJoin\\RDFPanda-Storage\\Trie.cpp",
+  "file": "C:/Users/Phoenix/Desktop/LeapfrogTrieJoin/RDFPanda-Storage/Trie.cpp",
+  "output": "CMakeFiles/RDFPanda_Storage.dir/Trie.cpp.obj"
+}
+]

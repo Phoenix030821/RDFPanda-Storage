@@ -48,7 +48,7 @@ void TestQueryBySubject() {
     InputParser parser;
     TripleStore store;
 
-    std::vector<Triple> triples = parser.parseTurtle("input_examples/example.ttl");
+    std::vector<Triple> triples = parser.parseTurtle("../input_examples/example.ttl");
     for (const auto& triple : triples) {
         store.addTriple(triple);
     }
@@ -64,7 +64,7 @@ void TestInfer() {
     InputParser parser;
     TripleStore store;
 
-    std::vector<Triple> triples = parser.parseTurtle("input_examples/example.ttl");
+    std::vector<Triple> triples = parser.parseTurtle("../input_examples/example.ttl");
     for (const auto& triple : triples) {
         store.addTriple(triple);
     }
@@ -75,6 +75,7 @@ void TestInfer() {
             "rule1",
             std::vector<Triple>{
                 {"?x", "http://example.org/friendOf", "?y"},
+                {"?x", "http://example.org/helo", "?y"},
             },
             Triple{"?x", "http://example.org/knows", "?y"}
     );
@@ -114,11 +115,84 @@ void TestInfer() {
     }
 }
 
+void TestDRed() {
+    InputParser parser;
+    TripleStore store;
+
+    std::vector<Triple> triples = parser.parseTurtle("../input_examples/example.ttl");
+    for (const auto& triple : triples) {
+        store.addTriple(triple);
+    }
+
+    // 定义规则
+    std::vector<Rule> rules;
+    Rule rule1(
+            "rule1",
+            std::vector<Triple>{
+                {"?x", "http://example.org/friendOf", "?y"},
+            },
+            Triple{"?x", "http://example.org/knows", "?y"}
+    );
+
+    Rule rule2(
+            "rule2",
+            std::vector<Triple>{
+                // {"?x", "http://example.org/knows", "?y"},
+                {"?y", "http://example.org/knows", "?z"},
+                {"?x", "http://example.org/knows", "?y"},
+            },
+            Triple{"?x", "http://example.org/knows", "?z"}
+    );
+
+    Rule rule3(
+            "rule3",
+            std::vector<Triple>{
+                {"?x", "http://example.org/knows", "?y"},
+            },
+            Triple{"?y", "http://example.org/knows", "?x"}
+    );
+
+    rules.push_back(rule1);  // 一次迭代
+    rules.push_back(rule2);  // 两次迭代，需要用到rule1的推理结果
+    rules.push_back(rule3);  // 三次迭代，需要用到rule1和2的推理结果
+
+    // 创建DatalogEngine实例
+    DatalogEngine engine(store, rules);
+
+    // 执行推理
+    // engine.reason();
+    engine.reasonNaive();
+
+    // 查询推理结果
+    std::vector<Triple> queryResult = store.queryByPredicate("http://example.org/knows");
+    for (const auto& triple : queryResult) {
+        std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+    }
+
+    std::vector<Triple> deletedFacts = parser.parseTurtle("../input_examples/example_del.ttl");
+    std::vector<Triple> insertedFacts = parser.parseTurtle("../input_examples/example_ins.ttl");
+    std::cout << "Deleted facts:" << std::endl;
+    for (const auto& triple : deletedFacts) {
+        std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+    }
+    std::cout << "Inserted facts:" << std::endl;
+    for (const auto& triple : insertedFacts) {
+        std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+    }  
+    engine.leapfrogDRed(deletedFacts, insertedFacts);
+
+    // // 查询推理结果
+    // queryResult = store.queryByPredicate("http://example.org/knows");
+    // for (const auto& triple : queryResult) {
+    //     std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+    // }
+}
+
 //// 测试用，解析并打印Datalog文件
 void TestDatalogParser() {
     InputParser parser;
-    // std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/ruleExample.dl");
-    std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/DAG-R.dl");
+    // std::vector<Rule> rules = parser.parseDatalogFromFile("../input_examples/ruleExample.dl");
+    std::vector<Rule> rules = parser.parseDatalogFromFile("../input_examples/DAG-R.dl");
     for (const auto& rule : rules) {
         std::cout << rule.name << std::endl;
         for (const auto& triple : rule.body) {
@@ -130,9 +204,10 @@ void TestDatalogParser() {
 
 //// 测试大文件读入及推理
 void TestLargeFile() {
+    std::cout << "Testing large file..." << std::endl;
     InputParser parser;
     TripleStore store;
-    std::vector<Triple> triples = parser.parseTurtle("input_examples/DAG.ttl");
+    std::vector<Triple> triples = parser.parseTurtle("../input_examples/DAG.ttl");
     // std::cout << "Total triples: " << triples.size() << std::endl;
     int count = 0;
     for (const auto& triple : triples) {
@@ -140,7 +215,7 @@ void TestLargeFile() {
         store.addTriple(triple);
     }
 
-    std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/DAG-R.dl");
+    std::vector<Rule> rules = parser.parseDatalogFromFile("../input_examples/DAG-R.dl");
 
     DatalogEngine engine(store, rules);
     engine.reason();
@@ -151,7 +226,7 @@ void TestLargeFile() {
 void TestMidFile() {
     InputParser parser;
     TripleStore store;
-    std::vector<Triple> triples = parser.parseTurtle("input_examples/mid-k.ttl");
+    std::vector<Triple> triples = parser.parseTurtle("../input_examples/mid-k.ttl");
     // std::cout << "Total triples: " << triples.size() << std::endl;
     int count = 0;
     for (const auto& triple : triples) {
@@ -159,7 +234,7 @@ void TestMidFile() {
         store.addTriple(triple);
     }
 
-    std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/mid.dl");
+    std::vector<Rule> rules = parser.parseDatalogFromFile("../input_examples/mid.dl");
 
     DatalogEngine engine(store, rules);
     engine.reason();
@@ -173,8 +248,8 @@ void TestMillionTriples() {
     InputParser parser;
     TripleStore store;
 
-    // std::vector<Triple> triples = parser.parseTurtle("input_examples/DAG.ttl");
-    std::vector<Triple> triples = parser.parseTurtle("input_examples/data_10k.ttl");
+    // std::vector<Triple> triples = parser.parseTurtle("../input_examples/DAG.ttl");
+    std::vector<Triple> triples = parser.parseTurtle("../input_examples/data_10k.ttl");
     std::cout << "Total triples: " << triples.size() << std::endl;
 
     std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
@@ -190,8 +265,8 @@ void TestMillionTriples() {
     std::cout << "Elapsed time for storing triples: " << elapsed.count() << " seconds" << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
-    // std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/DAG-R.dl");
-    std::vector<Rule> rules = parser.parseDatalogFromFile("input_examples/mid.dl");
+    // std::vector<Rule> rules = parser.parseDatalogFromFile("../input_examples/DAG-R.dl");
+    std::vector<Rule> rules = parser.parseDatalogFromFile("../input_examples/mid.dl");
     end = std::chrono::high_resolution_clock::now();
     elapsed = end - start;
     std::cout << "Elapsed time for parsing rules:   " << elapsed.count() << " seconds" << std::endl;
@@ -224,11 +299,12 @@ void startTimer() {
 
 int main() {
 
-    // TestInfer();
+    TestInfer();
     // TestDatalogParser();
     // TestLargeFile();
     // startTimer();
-    TestMillionTriples();
+    // TestMillionTriples();
+    //TestDRed();
 
     return 0;
 }

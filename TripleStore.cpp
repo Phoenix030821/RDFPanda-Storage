@@ -16,6 +16,42 @@ void TripleStore::addTriple(const Triple& triple) {
     triePOS.insertPOS(triple);
 }
 
+void TripleStore::deleteTriple(const Triple& triple) {
+    // 从vector中删除三元组
+    auto it = std::find(triples.begin(), triples.end(), triple);
+    if (it != triples.end()) {
+        size_t index = std::distance(triples.begin(), it);
+        triples.erase(it);
+
+        // 更新索引
+        auto& subject_indices = subject_index[triple.subject];
+        subject_indices.erase(std::remove(subject_indices.begin(), subject_indices.end(), index), subject_indices.end());
+        if (subject_indices.empty()) {
+            subject_index.erase(triple.subject);
+        }
+
+        auto& predicate_indices = predicate_index[triple.predicate];
+        predicate_indices.erase(std::remove(predicate_indices.begin(), predicate_indices.end(), index), predicate_indices.end());
+        if (predicate_indices.empty()) {
+            predicate_index.erase(triple.predicate);
+        }
+
+        auto& object_indices = object_index[triple.object];
+        object_indices.erase(std::remove(object_indices.begin(), object_indices.end(), index), object_indices.end());
+        if (object_indices.empty()) {
+            object_index.erase(triple.object);
+        }
+
+        // update: 使用Trie树优化
+        triePSO.deletePSO(triple);
+        triePOS.deletePOS(triple);\
+        // printf("\nDeleted triple: (%s, %s, %s)\n", triple.subject.c_str(), triple.predicate.c_str(), triple.object.c_str());
+        // printf("Remaining triples: %zu\n", triples.size());
+        // triePSO.printAll(); // 调试用，打印所有三元组
+        // triePOS.printAll(); // 调试用，打印所有三元组
+    }
+}
+
 std::vector<Triple> TripleStore::queryBySubject(const std::string& subject) {
     // 返回主语为subject的所有三元组
     if (subject_index.find(subject) == subject_index.end()) {

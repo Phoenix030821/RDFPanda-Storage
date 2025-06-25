@@ -28,6 +28,51 @@ void Trie::insertPOS(const Triple &triple) {
     curr->isEnd = true;
 }
 
+void Trie::deletePSO(const Triple& triple) {
+    // 删除 PSO 顺序的三元组
+    TrieNode* curr = root;
+    TrieNode* parent = nullptr;
+    std::vector<std::string> keys = { triple.predicate, triple.subject, triple.object };
+    for (const auto & key : keys) {
+        if (curr->children.find(key) == curr->children.end()) {
+            return; // 如果找不到对应的路径，直接返回
+        }
+        parent = curr; // 记录上一个节点
+        curr = curr->children[key];
+
+    }
+    if (curr->isEnd) {
+        curr->isEnd = false; // 仅标记为非结束节点，不删除节点
+        // 如果当前节点没有子节点且不是结束节点，删除当前节点
+        if (curr->children.empty()) {
+            parent->children.erase(keys.back()); // 删除最后一个键对应的子节点
+            delete curr; // 释放内存
+        }
+    }
+}
+
+void Trie::deletePOS(const Triple& triple) {
+    // 删除 POS 顺序的三元组
+    TrieNode* curr = root;
+    TrieNode* parent = nullptr;
+    std::vector<std::string> keys = { triple.predicate, triple.object, triple.subject };
+    for (const auto & key : keys) {
+        if (curr->children.find(key) == curr->children.end()) {
+            return; // 如果找不到对应的路径，直接返回
+        }
+        parent = curr; // 记录上一个节点
+        curr = curr->children[key];
+    }
+    if (curr->isEnd) {
+        curr->isEnd = false; // 仅标记为非结束节点，不删除节点
+        // 如果当前节点没有子节点且不是结束节点，删除当前节点
+        if (curr->children.empty()) {
+            parent->children.erase(keys.back()); // 删除最后一个键对应的子节点
+            delete curr; // 释放内存
+        }
+    }
+}
+
 
 // 仅用于调试，遍历并打印 Trie 中所有存储的三元组
 void Trie::printAll() {

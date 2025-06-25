@@ -27,6 +27,7 @@ private:
 
 public:
     void addTriple(const Triple& triple);
+    void deleteTriple(const Triple& triple);
     std::vector<Triple> queryBySubject(const std::string& subject);
     std::vector<Triple> queryByPredicate(const std::string& predicate);
     std::vector<Triple> queryByObject(const std::string& object);

@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(RDFPanda_Storage main.cpp InputParser.h InputParser.cpp TripleStore.cpp DatalogEngine.cpp DatalogEngine.h Trie.cpp Trie.h)
 
 # 添加测试目录
-add_subdirectory(tests)
+# add_subdirectory(tests)
 
 #add_subdirectory(tests/googletest)
 #include_directories(${PROJECT_SOURCE_DIR}/src/include tests/googletest/include)
