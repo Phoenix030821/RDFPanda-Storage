@@ -57,7 +57,7 @@ private:
 
     void overdeleteDRed(std::vector<Triple> &overdeletedFacts, std::vector<Triple> deletedFacts);
 
-    void insertDRed(std::vector<Triple> newFacts);
+    void insertDRed(std::vector<Triple> newFacts, std::vector<Triple> redrivedFacts);
 
     /*
     void leapfrogTriejoin(TrieNode* trieRoot, const Rule& rule, std::vector<Triple>& newFacts);

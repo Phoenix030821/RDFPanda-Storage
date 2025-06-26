@@ -181,11 +181,12 @@ void TestDRed() {
     }  
     engine.leapfrogDRed(deletedFacts, insertedFacts);
 
-    // // 查询推理结果
-    // queryResult = store.queryByPredicate("http://example.org/knows");
-    // for (const auto& triple : queryResult) {
-    //     std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
-    // }
+    // 查询推理结果
+    std::cout << "After DRed, query results:" << std::endl;
+    queryResult = store.queryByPredicate("http://example.org/knows");
+    for (const auto& triple : queryResult) {
+        std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+    }
 }
 
 //// 测试用，解析并打印Datalog文件

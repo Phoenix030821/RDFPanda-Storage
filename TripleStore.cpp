@@ -21,7 +21,7 @@ void TripleStore::deleteTriple(const Triple& triple) {
     auto it = std::find(triples.begin(), triples.end(), triple);
     if (it != triples.end()) {
         size_t index = std::distance(triples.begin(), it);
-        triples.erase(it);
+        // triples.erase(it);
 
         // 更新索引
         auto& subject_indices = subject_index[triple.subject];
@@ -44,7 +44,7 @@ void TripleStore::deleteTriple(const Triple& triple) {
 
         // update: 使用Trie树优化
         triePSO.deletePSO(triple);
-        triePOS.deletePOS(triple);\
+        triePOS.deletePOS(triple);
         // printf("\nDeleted triple: (%s, %s, %s)\n", triple.subject.c_str(), triple.predicate.c_str(), triple.object.c_str());
         // printf("Remaining triples: %zu\n", triples.size());
         // triePSO.printAll(); // 调试用，打印所有三元组

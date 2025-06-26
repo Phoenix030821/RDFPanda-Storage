@@ -359,7 +359,6 @@ void DatalogEngine::leapfrogDRed(std::vector<Triple>& deletedFacts, std::vector<
     for(auto& fact: overdeletedFacts) {
         if(originalStore.getNodeByTriple(fact) != nullptr) {
             redrivedFacts.push_back(fact);
-            
             continue;
         }
         for(auto rule : rules) {
@@ -378,10 +377,10 @@ void DatalogEngine::leapfrogDRed(std::vector<Triple>& deletedFacts, std::vector<
             // 调用leapfrogTriejoin推理新事实
             std::vector<Triple> newFacts;
             leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, newFacts, bindings);
-            printf("New facts derived from rule (%s): %zu\n", rule.name.c_str(), newFacts.size());
-            for(const auto& newFact : newFacts) {
-                printf("(%s, %s, %s)\n", newFact.subject.c_str(), newFact.predicate.c_str(), newFact.object.c_str());
-            }
+            // printf("New facts derived from rule (%s): %zu\n", rule.name.c_str(), newFacts.size());
+            // for(const auto& newFact : newFacts) {
+            //     printf("(%s, %s, %s)\n", newFact.subject.c_str(), newFact.predicate.c_str(), newFact.object.c_str());
+            // }
             if(!newFacts.empty()) {
                 if (store.getNodeByTriple(fact) == nullptr) {
                     redrivedFacts.push_back(fact);
@@ -391,6 +390,7 @@ void DatalogEngine::leapfrogDRed(std::vector<Triple>& deletedFacts, std::vector<
         }
     }
 
+    
     printf("Redrived facts: %zu\n", redrivedFacts.size());
     for(const auto& fact: redrivedFacts) {
         printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
@@ -401,16 +401,16 @@ void DatalogEngine::leapfrogDRed(std::vector<Triple>& deletedFacts, std::vector<
         }
     }
 
-    // // insert
-    // insertDRed(insertedFacts);
+    // insert
+    insertDRed(insertedFacts, redrivedFacts);
 
-    // for(const auto& fact: deletedFacts) {
-    //     originalStore.deleteTriple(fact);
-    // }
+    for(const auto& fact: deletedFacts) {
+        originalStore.deleteTriple(fact);
+    }
     
-    // for(const auto& fact: insertedFacts) {
-    //     originalStore.addTriple(fact);
-    // }
+    for(const auto& fact: insertedFacts) {
+        originalStore.addTriple(fact);
+    }
 
     
 
@@ -497,11 +497,36 @@ void DatalogEngine::overdeleteDRed(std::vector<Triple> &overdeletedFacts, std::v
     
 }
 
-void DatalogEngine::insertDRed(std::vector<Triple> newFacts) {
-    // 对每个删除的事实，检查是否有规则可以应用
-    std::vector<Triple> inferredFacts;
-    while(!newFacts.empty()) {
-        for (const auto& triple : newFacts) {
+void DatalogEngine::insertDRed(std::vector<Triple> newFacts, std::vector<Triple> redrivedFacts) {
+    // N_A = R + E+
+    std::vector<Triple> allInsertedFacts;
+    std::vector<Triple> insertedFacts;
+    for(const auto& triple : newFacts) {
+        insertedFacts.push_back(triple);
+    }
+    for(const auto& triple : redrivedFacts) {
+        insertedFacts.push_back(triple);
+    }
+    while(true) {
+        std::vector<Triple> deltaA;
+        // delta_A = N_A - (I - D + A)
+        for(const auto& triple: insertedFacts) {
+            if (store.getNodeByTriple(triple) == nullptr) {
+                deltaA.push_back(triple);
+            }
+        }
+        // if delta_A = empty set   break
+        if(deltaA.empty())
+            break;
+        // A = A U delta_A
+        for (const auto& fact : deltaA) {
+            if(store.getNodeByTriple(fact) == nullptr) {
+                store.addTriple(fact);
+                allInsertedFacts.push_back(fact);
+            }
+        }
+        std::set<Triple> inferredFactsSet;
+        for (const auto& triple : deltaA) {
             // 根据谓语查找规则
             auto it = rulesMap.find(triple.predicate);
             if (it != rulesMap.end()) {
@@ -521,21 +546,28 @@ void DatalogEngine::insertDRed(std::vector<Triple> newFacts) {
                     }
 
                     // 调用leapfrogTriejoin推理新事实
-                    
+                    std::vector<Triple> inferredFacts;
                     leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, inferredFacts, bindings); 
+                    for(const auto& fact : inferredFacts) {
+                        if (store.getNodeByTriple(fact) == nullptr) {
+                            inferredFactsSet.insert(fact);
+                        }
+                    }
                 }
             }
         }
-        for(const auto& fact: newFacts) {
-            store.addTriple(fact);
+        insertedFacts.clear();
+        for(auto& fact : inferredFactsSet) {
+            // 将推理出的事实加入到insertedFacts中
+            if (store.getNodeByTriple(fact) == nullptr) {
+                insertedFacts.push_back(fact);
+            }
         }
-        newFacts.clear();
-        // 将新推理出的事实加入到待删除的事实中
-        for (const auto& fact : inferredFacts) {
-            //推理出的事实加入到overdeletedFacts
-            newFacts.push_back(fact);
-        }
-        inferredFacts.clear();
+    }
+
+    printf("Inserted facts: %zu\n", allInsertedFacts.size());
+    for(const auto& fact: allInsertedFacts) {
+        printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
     }
 
 }
