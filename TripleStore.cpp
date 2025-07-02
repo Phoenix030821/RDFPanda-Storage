@@ -1,7 +1,7 @@
 #include "TripleStore.h"
 
 void TripleStore::addTriple(const Triple& triple) {
-
+    //  printf("Adding triple: (%s, %s, %s)\n", triple.subject.c_str(), triple.predicate.c_str(), triple.object.c_str());
     // 添加到vector
     triples.push_back(triple);
     size_t index = triples.size() - 1;
@@ -18,11 +18,13 @@ void TripleStore::addTriple(const Triple& triple) {
 
 void TripleStore::deleteTriple(const Triple& triple) {
     // 从vector中删除三元组
+    // printf("Deleting triple: (%s, %s, %s)\n", triple.subject.c_str(), triple.predicate.c_str(), triple.object.c_str());
     auto it = std::find(triples.begin(), triples.end(), triple);
+
     if (it != triples.end()) {
         size_t index = std::distance(triples.begin(), it);
         // triples.erase(it);
-
+        // printf("Triple found at index: %zu\n", index);
         // 更新索引
         auto& subject_indices = subject_index[triple.subject];
         subject_indices.erase(std::remove(subject_indices.begin(), subject_indices.end(), index), subject_indices.end());
@@ -31,6 +33,7 @@ void TripleStore::deleteTriple(const Triple& triple) {
         }
 
         auto& predicate_indices = predicate_index[triple.predicate];
+        
         predicate_indices.erase(std::remove(predicate_indices.begin(), predicate_indices.end(), index), predicate_indices.end());
         if (predicate_indices.empty()) {
             predicate_index.erase(triple.predicate);
@@ -71,6 +74,7 @@ std::vector<Triple> TripleStore::queryByPredicate(const std::string& predicate) 
     }
     std::vector<Triple> result;
     for (size_t index : predicate_index[predicate]) {
+        // printf("Found triple with predicate: %s at index: %zu\n", predicate.c_str(), index);
         result.push_back(triples[index]);
     }
     return result;

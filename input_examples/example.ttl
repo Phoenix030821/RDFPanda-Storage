@@ -7,8 +7,12 @@
 @prefix ex: <http://example.org/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
-ex:Alice rdf:type ex:Person .
-ex:Bob rdf:type ex:Person .
+#ex:Alice rdf:type ex:Person .
+#ex:Bob rdf:type ex:Person .
 #ex:Alice ex:knows ex:Bob .
-ex:Alice ex:friendOf ex:Bob .
-ex:Bob ex:friendOf ex:Claire .
+#ex:Alice ex:friendOf ex:Bob .
+#ex:Bob ex:friendOf ex:Claire .
+ex:A ex:knows ex:B .
+ex:B ex:knows ex:C .
+ex:A ex:knows ex:D .
+ex:D ex:knows ex:C .

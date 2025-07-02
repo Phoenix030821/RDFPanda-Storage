@@ -39,6 +39,50 @@ void DatalogEngine::initiateRulesMap() {
 
         }
     }
+
+    for(const auto& rule : nonrecursiveRules) {
+        for (const auto& triple : rule.body) {
+            if (isVariable(triple.predicate)) {
+                // 变量不作为索引
+                continue;
+            }
+            std::string predicate = triple.predicate;
+
+            if (nonrecursiveRulesMap.find(predicate) == nonrecursiveRulesMap.end()) {
+                // 如果当前谓语不在map中，则添加
+                nonrecursiveRulesMap[predicate] = std::vector<std::pair<size_t, size_t>>();  // 规则下标，规则体中谓语下标
+            }
+
+            // 向map中谓语对应的规则下标列表中添加当前规则的下标以及该谓语在规则体中的下标
+            nonrecursiveRulesMap[predicate].emplace_back(&rule - &nonrecursiveRules[0], &triple - &rule.body[0]);
+        }
+    }
+    for(const auto& rule : recursiveRules) {
+        for (const auto& triple : rule.body) {
+            if (isVariable(triple.predicate)) {
+                // 变量不作为索引
+                continue;
+            }
+            std::string predicate = triple.predicate;
+
+            if (recursiveRulesMap.find(predicate) == recursiveRulesMap.end()) {
+                // 如果当前谓语不在map中，则添加
+                recursiveRulesMap[predicate] = std::vector<std::pair<size_t, size_t>>();  // 规则下标，规则体中谓语下标
+            }
+
+            // 向map中谓语对应的规则下标列表中添加当前规则的下标以及该谓语在规则体中的下标
+            recursiveRulesMap[predicate].emplace_back(&rule - &recursiveRules[0], &triple - &rule.body[0]);
+        }
+    }
+}
+
+void DatalogEngine::initiateCounting() {
+    std::vector<Triple> allTriples = store.getAllTriples();
+    for (const auto& triple : allTriples) {
+        if(nonrecursiveNum.find(triple) == nonrecursiveNum.end()) {
+            nonrecursiveNum[triple] = 1;
+        }
+    }
 }
 
 void DatalogEngine::reason() {
@@ -272,17 +316,56 @@ void DatalogEngine::reasonNaive() {
 
     std::queue<Triple> newFactQueue; // 存储新产生的事实，出队时触发对应规则的应用，并存到事实库中
 
-
+    std::set<Triple> newFactsSet; // 用于去重新事实
     // 先进行第一轮推理，初始时没有新事实，遍历规则逐条应用
     // int ruleId = 0;
-    for (const auto& rule : rules) {
+    for (const auto& rule : recursiveRules) {
         std::vector<Triple> newFacts;
         std::map<std::string, std::string> bindings;
         leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, newFacts, bindings);
+        printf("New facts derived from rule (%s): %zu\n", rule.name.c_str(), newFacts.size());
+        for(const auto& newFact : newFacts) {
+            printf("(%s, %s, %s)\n", newFact.subject.c_str(), newFact.predicate.c_str(), newFact.object.c_str());
+        }
         for (const auto& triple : newFacts) {
             if (store.getNodeByTriple(triple) == nullptr) {
                 // store.addTriple(triple);
-                newFactQueue.push(triple);
+                if(newFactsSet.find(triple) == newFactsSet.end()) {
+                    newFactsSet.insert(triple);
+                    newFactQueue.push(triple);
+                    // printf("New fact added: (%s, %s, %s)\n", triple.subject.c_str(), triple.predicate.c_str(), triple.object.c_str());
+                }
+                if(recursiveNum.find(triple) == recursiveNum.end()) {
+                    recursiveNum[triple] = 1;
+                } else {
+                    recursiveNum[triple]++;
+                }
+                // newFactAdded = true;
+            }
+        }
+    }
+
+    for (const auto& rule : nonrecursiveRules) {
+        std::vector<Triple> newFacts;
+        std::map<std::string, std::string> bindings;
+        leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, newFacts, bindings);
+        printf("New facts derived from rule (%s): %zu\n", rule.name.c_str(), newFacts.size());
+        for(const auto& newFact : newFacts) {
+            printf("(%s, %s, %s)\n", newFact.subject.c_str(), newFact.predicate.c_str(), newFact.object.c_str());
+        }
+        for (const auto& triple : newFacts) {
+            if (store.getNodeByTriple(triple) == nullptr) {
+                // store.addTriple(triple);
+                if(newFactsSet.find(triple) == newFactsSet.end()) {
+                    newFactsSet.insert(triple);
+                    newFactQueue.push(triple);
+                    // printf("New fact added: (%s, %s, %s)\n", triple.subject.c_str(), triple.predicate.c_str(), triple.object.c_str());
+                }
+                if(nonrecursiveNum.find(triple) == nonrecursiveNum.end()) {
+                    nonrecursiveNum[triple] = 1;
+                } else {
+                    nonrecursiveNum[triple]++;
+                }
                 // newFactAdded = true;
             }
         }
@@ -305,14 +388,15 @@ void DatalogEngine::reasonNaive() {
 
         // 处理 currentTriple，推理新事实并加锁入队
         // 根据rulesMap找到规则
-        auto it = rulesMap.find(currentTriple.predicate);
-        if (it != rulesMap.end()) {
+        auto it = recursiveRulesMap.find(currentTriple.predicate);
+        if (it != recursiveRulesMap.end()) {
             for (const auto& rulePair : it->second) {
                 size_t ruleIdx = rulePair.first;
                 size_t patternIdx = rulePair.second;
-                const Rule& rule = rules[ruleIdx];
+                const Rule& rule = recursiveRules[ruleIdx];
                 const Triple& pattern = rule.body[patternIdx];
-
+                printf("Applying rule: %s\n", rule.name.c_str());
+                printf("Pattern: (%s, %s, %s)\n", pattern.subject.c_str(), pattern.predicate.c_str(), pattern.object.c_str());
                 // 绑定变量
                 std::map<std::string, std::string> bindings;
                 if (isVariable(pattern.subject)) {
@@ -330,8 +414,59 @@ void DatalogEngine::reasonNaive() {
                     // std::lock_guard<std::mutex> storeLock(storeMutex);
                     if (store.getNodeByTriple(fact) == nullptr) {
                         // store.addTriple(fact);
-                        newFactQueue.push(fact);
+                        if(newFactsSet.find(fact) == newFactsSet.end()) {
+                            newFactsSet.insert(fact);
+                            newFactQueue.push(fact);
+                            // printf("New fact added: (%s, %s, %s)\n", triple.subject.c_str(), triple.predicate.c_str(), triple.object.c_str());
+                        }
                         // reasonCount++;
+                        if(recursiveNum.find(fact) == recursiveNum.end()) {
+                            recursiveNum[fact] = 1;
+                        } else {
+                            recursiveNum[fact]++;
+                        }
+                    }
+                }
+            }
+        }
+
+        it = nonrecursiveRulesMap.find(currentTriple.predicate);
+        if (it != nonrecursiveRulesMap.end()) {
+            for (const auto& rulePair : it->second) {
+                size_t ruleIdx = rulePair.first;
+                size_t patternIdx = rulePair.second;
+                const Rule& rule = nonrecursiveRules[ruleIdx];
+                const Triple& pattern = rule.body[patternIdx];
+                printf("Applying rule: %s\n", rule.name.c_str());
+                printf("Pattern: (%s, %s, %s)\n", pattern.subject.c_str(), pattern.predicate.c_str(), pattern.object.c_str());
+                // 绑定变量
+                std::map<std::string, std::string> bindings;
+                if (isVariable(pattern.subject)) {
+                    bindings[pattern.subject] = currentTriple.subject;
+                }
+                if (isVariable(pattern.object)) {
+                    bindings[pattern.object] = currentTriple.object;
+                }
+
+                // 调用leapfrogTriejoin推理新事实
+                std::vector<Triple> inferredFacts;
+                leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, inferredFacts, bindings);
+
+                for (const auto& fact : inferredFacts) {
+                    // std::lock_guard<std::mutex> storeLock(storeMutex);
+                    if (store.getNodeByTriple(fact) == nullptr) {
+                        // store.addTriple(fact);
+                        if(newFactsSet.find(fact) == newFactsSet.end()) {
+                            newFactsSet.insert(fact);
+                            newFactQueue.push(fact);
+                            // printf("New fact added: (%s, %s, %s)\n", triple.subject.c_str(), triple.predicate.c_str(), triple.object.c_str());
+                        }
+                        // reasonCount++;
+                        if(nonrecursiveNum.find(fact) == nonrecursiveNum.end()) {
+                            nonrecursiveNum[fact] = 1;
+                        } else {
+                            nonrecursiveNum[fact]++;
+                        }
                     }
                 }
             }
@@ -340,7 +475,16 @@ void DatalogEngine::reasonNaive() {
 
     // 输出推理完成后的事实库大小
     std::cout << "Total triples in store:           " << store.getAllTriples().size() << std::endl;
-
+    auto it = recursiveNum.begin();
+    std::cout << "Total recursive triples:          " << recursiveNum.size() << std::endl;
+    for(; it != recursiveNum.end(); it++) {
+        std::cout << it->first.subject << " " << it->first.predicate << " " << it->first.object << " : " << it->second << std::endl;
+    }
+    it = nonrecursiveNum.begin();
+    std::cout << "Total nonrecursive triples:       " << nonrecursiveNum.size() << std::endl;
+    for(; it != nonrecursiveNum.end(); it++) {
+        std::cout << it->first.subject << " " << it->first.predicate << " " << it->first.object << " : " << it->second << std::endl;
+    }
 
 }
 
@@ -411,9 +555,6 @@ void DatalogEngine::leapfrogDRed(std::vector<Triple>& deletedFacts, std::vector<
     for(const auto& fact: insertedFacts) {
         originalStore.addTriple(fact);
     }
-
-    
-
 
 }
 
@@ -572,6 +713,293 @@ void DatalogEngine::insertDRed(std::vector<Triple> newFacts, std::vector<Triple>
 
 }
 
+void DatalogEngine::leapfrogDRedCounting(std::vector<Triple>& deletedFacts, std::vector<Triple>& insertedFacts) {
+    // overdelete
+    std::vector<Triple> overdeletedFacts;
+    overdeleteDRedCounting(overdeletedFacts, deletedFacts);
+    // printf("Overdeleted facts: %zu\n", overdeletedFacts.size());
+    // for(const auto& fact: overdeletedFacts) {
+    //     printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
+    // }
+    // printf("Recursive facts count: %zu\n", recursiveNum.size());
+    // for(auto &fact: recursiveNum) {
+    //     printf("(%s, %s, %s) : %d\n", fact.first.subject.c_str(), fact.first.predicate.c_str(), fact.first.object.c_str(), fact.second);
+    // }
+    // printf("Nonrecursive facts count: %zu\n", nonrecursiveNum.size());
+    // for(auto &fact: nonrecursiveNum) {
+    //     printf("(%s, %s, %s) : %d\n", fact.first.subject.c_str(), fact.first.predicate.c_str(), fact.first.object.c_str(), fact.second);
+    // }
+    // one-step redrive
+    std::vector<Triple> redrivedFacts;
+    for(auto& fact: overdeletedFacts) {
+        if(recursiveNum.find(fact) != recursiveNum.end() && recursiveNum[fact] > 0) {
+            redrivedFacts.push_back(fact);
+        }
+    }
+
+    
+    printf("Redrived facts: %zu\n", redrivedFacts.size());
+    for(const auto& fact: redrivedFacts) {
+        printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
+    }
+    // for(const auto& fact: redrivedFacts) {
+    //     if (store.getNodeByTriple(fact) == nullptr) {
+    //         store.addTriple(fact);
+    //     }
+    // }
+
+    // insert
+    insertDRedCounting(insertedFacts, redrivedFacts);
+
+    for(const auto& fact: deletedFacts) {
+        originalStore.deleteTriple(fact);
+    }
+    
+    for(const auto& fact: insertedFacts) {
+        originalStore.addTriple(fact);
+    }
+    
+}
+
+void DatalogEngine::overdeleteDRedCounting(std::vector<Triple> &overdeletedFacts, std::vector<Triple> deletedFacts) {
+    // D overdeletedFacts
+    // N_D inferredFactsSet
+    // delta_D deletedFacts
+    // 对每个删除的事实，检查是否有规则可以应用
+    std::multiset<Triple> overdeletedFactsSet;
+    std::set<Triple> inferredFactsSet;
+    
+    // N_D = E-
+    for(auto& fact: deletedFacts) {
+        if (store.getNodeByTriple(fact) != nullptr) {
+            inferredFactsSet.insert(fact);
+            nonrecursiveNum[fact]--;
+        }
+    }
+
+    while(true) {
+        std::vector<Triple> deltaD;
+        // delta_D = N_D - D
+        for(const auto& triple: inferredFactsSet) {
+            if(overdeletedFactsSet.find(triple) == overdeletedFactsSet.end() && nonrecursiveNum[triple] == 0) {
+                deltaD.push_back(triple);
+            }
+        }
+        // if delta_D = empty set   break
+        if(deltaD.empty())
+            break;
+
+        inferredFactsSet.clear();
+        // N_D = PI[I - D : delta_D]
+        printf("delta D: %zu\n", deltaD.size());
+        for (const auto& triple : deltaD) {
+            // printf("Processing triple: (%s, %s, %s)\n", triple.subject.c_str(), triple.predicate.c_str(), triple.object.c_str());
+            // 根据谓语查找规则
+            // nonrecursive
+            auto it = nonrecursiveRulesMap.find(triple.predicate);
+            if (it != nonrecursiveRulesMap.end()) {
+                for (const auto& rulePair : it->second) {
+                    size_t ruleIdx = rulePair.first;
+                    size_t patternIdx = rulePair.second;
+                    const Rule& rule = nonrecursiveRules[ruleIdx];
+                    const Triple& pattern = rule.body[patternIdx];
+
+                    // printf("Pattern: (%s, %s, %s)\n", pattern.subject.c_str(), pattern.predicate.c_str(), pattern.object.c_str());
+                    // 绑定变量
+                    std::map<std::string, std::string> bindings;
+                    if (isVariable(pattern.subject)) {
+                        bindings[pattern.subject] = triple.subject;
+                    }
+                    if (isVariable(pattern.object)) {
+                        bindings[pattern.object] = triple.object;
+                    }
+
+                    // 调用leapfrogTriejoin推理新事实
+                    std::vector<Triple> inferredFacts;
+                    leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, inferredFacts, bindings); 
+                    for(const auto& fact : inferredFacts) {
+                        nonrecursiveNum[fact]--;
+                        if (store.getNodeByTriple(fact) != nullptr) {
+                            inferredFactsSet.insert(fact);
+                        }
+                    }
+                }
+            }
+
+            // recursive
+            it = recursiveRulesMap.find(triple.predicate);
+            if (it != recursiveRulesMap.end()) {
+                for (const auto& rulePair : it->second) {
+                    size_t ruleIdx = rulePair.first;
+                    size_t patternIdx = rulePair.second;
+                    const Rule& rule = recursiveRules[ruleIdx];
+                    const Triple& pattern = rule.body[patternIdx];
+
+                    // printf("Pattern: (%s, %s, %s)\n", pattern.subject.c_str(), pattern.predicate.c_str(), pattern.object.c_str());
+                    // 绑定变量
+                    std::map<std::string, std::string> bindings;
+                    if (isVariable(pattern.subject)) {
+                        bindings[pattern.subject] = triple.subject;
+                    }
+                    if (isVariable(pattern.object)) {
+                        bindings[pattern.object] = triple.object;
+                    }
+
+                    // 调用leapfrogTriejoin推理新事实
+                    std::vector<Triple> inferredFacts;
+                    leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, inferredFacts, bindings);
+                    // printf("Inferred facts size: %zu\n", inferredFacts.size()); 
+                    for(const auto& fact : inferredFacts) {
+                        // printf("Inferred fact: (%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
+                        recursiveNum[fact]--;
+                        if (store.getNodeByTriple(fact) != nullptr) {
+                            inferredFactsSet.insert(fact);
+                        }
+                    }
+                }
+            }
+        }
+        // I -= delta_D
+        for(const auto& fact: deltaD) {
+            store.deleteTriple(fact);
+        }
+        // D = D U delta_D
+        for (const auto& fact : deltaD) {
+            //推理出的事实加入到overdeletedFacts
+            overdeletedFactsSet.insert(fact);
+        }
+    }
+
+    for(const auto& fact : overdeletedFactsSet) {
+        // 将overdeletedFactsSet中的事实加入到overdeletedFacts中
+        if (store.getNodeByTriple(fact) == nullptr) {
+            overdeletedFacts.push_back(fact);
+        }
+    }
+    
+}
+
+void DatalogEngine::insertDRedCounting(std::vector<Triple> newFacts, std::vector<Triple> redrivedFacts) {
+    // N_A = R + E+
+    for(auto& fact : newFacts) {
+        if (store.getNodeByTriple(fact) == nullptr) {
+            if(nonrecursiveNum.find(fact) == nonrecursiveNum.end()) {
+                nonrecursiveNum[fact] = 1;
+            } else {
+                nonrecursiveNum[fact]++;
+            }
+        }
+    }
+    std::vector<Triple> allInsertedFacts;
+    std::vector<Triple> insertedFacts;
+    for(const auto& triple : newFacts) {
+        insertedFacts.push_back(triple);
+    }
+    for(const auto& triple : redrivedFacts) {
+        insertedFacts.push_back(triple);
+    }
+    while(true) {
+        std::vector<Triple> deltaA;
+        // delta_A = N_A - (I - D + A)
+        for(const auto& triple: insertedFacts) {
+            if (store.getNodeByTriple(triple) == nullptr) {
+                deltaA.push_back(triple);
+            }
+        }
+        // if delta_A = empty set   break
+        if(deltaA.empty())
+            break;
+        // A = A U delta_A
+        for (const auto& fact : deltaA) {
+            if(store.getNodeByTriple(fact) == nullptr) {
+                store.addTriple(fact);
+                allInsertedFacts.push_back(fact);
+            }
+        }
+        std::set<Triple> inferredFactsSet;
+        for (const auto& triple : deltaA) {
+            // 根据谓语查找规则
+            auto it = nonrecursiveRulesMap.find(triple.predicate);
+            if (it != nonrecursiveRulesMap.end()) {
+                for (const auto& rulePair : it->second) {
+                    size_t ruleIdx = rulePair.first;
+                    size_t patternIdx = rulePair.second;
+                    const Rule& rule = nonrecursiveRules[ruleIdx];
+                    const Triple& pattern = rule.body[patternIdx];
+
+                    // 绑定变量
+                    std::map<std::string, std::string> bindings;
+                    if (isVariable(pattern.subject)) {
+                        bindings[pattern.subject] = triple.subject;
+                    }
+                    if (isVariable(pattern.object)) {
+                        bindings[pattern.object] = triple.object;
+                    }
+
+                    // 调用leapfrogTriejoin推理新事实
+                    std::vector<Triple> inferredFacts;
+                    leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, inferredFacts, bindings); 
+                    for(const auto& fact : inferredFacts) {
+                        if(nonrecursiveNum.find(fact) == nonrecursiveNum.end()) {
+                            nonrecursiveNum[fact] = 1;
+                        } else {
+                            nonrecursiveNum[fact]++;
+                        }
+                        if (store.getNodeByTriple(fact) == nullptr) {
+                            inferredFactsSet.insert(fact);
+                        }
+                    }
+                }
+            }
+
+            it = recursiveRulesMap.find(triple.predicate);
+            if (it != recursiveRulesMap.end()) {
+                for (const auto& rulePair : it->second) {
+                    size_t ruleIdx = rulePair.first;
+                    size_t patternIdx = rulePair.second;
+                    const Rule& rule = recursiveRules[ruleIdx];
+                    const Triple& pattern = rule.body[patternIdx];
+
+                    // 绑定变量
+                    std::map<std::string, std::string> bindings;
+                    if (isVariable(pattern.subject)) {
+                        bindings[pattern.subject] = triple.subject;
+                    }
+                    if (isVariable(pattern.object)) {
+                        bindings[pattern.object] = triple.object;
+                    }
+
+                    // 调用leapfrogTriejoin推理新事实
+                    std::vector<Triple> inferredFacts;
+                    leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, inferredFacts, bindings); 
+                    for(const auto& fact : inferredFacts) {
+                        if(recursiveNum.find(fact) == recursiveNum.end()) {
+                            recursiveNum[fact] = 1;
+                        } else {
+                            recursiveNum[fact]++;
+                        }
+                        if (store.getNodeByTriple(fact) == nullptr) {
+                            inferredFactsSet.insert(fact);
+                        }
+                    }
+                }
+            }
+        }
+        insertedFacts.clear();
+        for(auto& fact : inferredFactsSet) {
+            // 将推理出的事实加入到insertedFacts中
+            if (store.getNodeByTriple(fact) == nullptr) {
+                insertedFacts.push_back(fact);
+            }
+        }
+    }
+
+    printf("Inserted facts: %zu\n", allInsertedFacts.size());
+    for(const auto& fact: allInsertedFacts) {
+        printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
+    }
+
+}
 bool DatalogEngine::isVariable(const std::string& term) {
     // 判断是否为变量，变量以?开头，如"?x"
     return !term.empty() && term[0] == '?';
@@ -682,7 +1110,6 @@ void DatalogEngine::join_by_variable(
     //     printf("%s -> %s, ", binding.first.c_str(), binding.second.c_str());
     // }
     // printf("\n");  
-
     // 当所有变量都已绑定时，生成新的事实
     if (varIdx >= variables.size()) {
         //遍历rule的body中的三元组，是否在store中存在
@@ -705,7 +1132,6 @@ void DatalogEngine::join_by_variable(
         newFacts.emplace_back(newSubject, newPredicate, newObject);
         return;
     }
-
     // 获取当前要处理的变量
     auto varIt = variables.begin();
     std::advance(varIt, varIdx);
@@ -716,7 +1142,6 @@ void DatalogEngine::join_by_variable(
         join_by_variable(psoRoot, posRoot, rule, variables, varPositions, bindings, varIdx + 1, newFacts);
         return;
     }
-
     // 对当前变量创建迭代器
     std::vector<TrieIterator*> iterators;
     for (const auto& pos : varPositions.at(currentVar)) {
@@ -796,8 +1221,12 @@ void DatalogEngine::join_by_variable(
     if (!iterators.empty()) {
         LeapfrogJoin lf(iterators);
         while (!lf.atEnd()) {
+            if(lf.key().empty()) {
+                lf.next();
+                continue; // 跳过空key
+            }
             std::string key = lf.key();
-            bindings[currentVar] = key;
+            bindings[currentVar] = key;  // 将当前变量绑定到迭代器的key上
             // 递归处理下一个变量
             join_by_variable(psoRoot, posRoot, rule, variables, varPositions, bindings, varIdx + 1, newFacts);
 
@@ -812,6 +1241,7 @@ void DatalogEngine::join_by_variable(
 
     // 删除当前变量的绑定
     bindings.erase(currentVar);
+
 }
 
 // 辅助函数：若绑定中存在变量则替换其绑定的值，否则返回原字符串（此时为常量）

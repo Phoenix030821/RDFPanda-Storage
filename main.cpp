@@ -90,23 +90,23 @@ void TestInfer() {
             Triple{"?x", "http://example.org/knows", "?z"}
     );
 
-    Rule rule3(
-            "rule3",
-            std::vector<Triple>{
-                {"?x", "http://example.org/knows", "?y"},
-            },
-            Triple{"?y", "http://example.org/knows", "?x"}
-    );
+    // Rule rule3(
+    //         "rule3",
+    //         std::vector<Triple>{
+    //             {"?x", "http://example.org/knows", "?y"},
+    //         },
+    //         Triple{"?y", "http://example.org/knows", "?x"}
+    // );
 
     rules.push_back(rule1);  // 一次迭代
     rules.push_back(rule2);  // 两次迭代，需要用到rule1的推理结果
-    rules.push_back(rule3);  // 三次迭代，需要用到rule1和2的推理结果
+    // rules.push_back(rule3);  // 三次迭代，需要用到rule1和2的推理结果
 
     // 创建DatalogEngine实例
     DatalogEngine engine(store, rules);
 
     // 执行推理
-    engine.reason();
+    engine.reasonNaive();
 
     // 查询推理结果
     std::vector<Triple> queryResult = store.queryByPredicate("http://example.org/knows");
@@ -144,17 +144,17 @@ void TestDRed() {
             Triple{"?x", "http://example.org/knows", "?z"}
     );
 
-    Rule rule3(
-            "rule3",
-            std::vector<Triple>{
-                {"?x", "http://example.org/knows", "?y"},
-            },
-            Triple{"?y", "http://example.org/knows", "?x"}
-    );
+    // Rule rule3(
+    //         "rule3",
+    //         std::vector<Triple>{
+    //             {"?x", "http://example.org/knows", "?y"},
+    //         },
+    //         Triple{"?y", "http://example.org/knows", "?x"}
+    // );
 
     rules.push_back(rule1);  // 一次迭代
     rules.push_back(rule2);  // 两次迭代，需要用到rule1的推理结果
-    rules.push_back(rule3);  // 三次迭代，需要用到rule1和2的推理结果
+    // rules.push_back(rule3);  // 三次迭代，需要用到rule1和2的推理结果
 
     // 创建DatalogEngine实例
     DatalogEngine engine(store, rules);
@@ -179,7 +179,7 @@ void TestDRed() {
     for (const auto& triple : insertedFacts) {
         std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
     }  
-    engine.leapfrogDRed(deletedFacts, insertedFacts);
+    engine.leapfrogDRedCounting(deletedFacts, insertedFacts);
 
     // 查询推理结果
     std::cout << "After DRed, query results:" << std::endl;
