@@ -92,6 +92,16 @@ std::vector<Triple> TripleStore::queryByObject(const std::string& object) {
     return result;
 }
 
+std::vector<Triple> TripleStore::getAllTriples() const {
+    std::vector<Triple> allTriples;
+    for(const auto& predicate : predicate_index) {
+        for (size_t index : predicate.second) {
+            allTriples.push_back(triples[index]);
+        }
+    }
+    return allTriples;
+}
+
 TrieNode* TripleStore::getNodeByTriple(const Triple& triple) const {
     // 返回指定三元组的Trie节点
     TrieNode* node = triePSO.root;

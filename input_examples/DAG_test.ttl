@@ -1,0 +1,16 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix p: <http://dag.org#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ruleml: <http://www.w3.org/2003/11/ruleml#> .
+@prefix swrl: <http://www.w3.org/2003/11/swrl#> .
+@prefix swrlb: <http://www.w3.org/2003/11/swrlb#> .
+@prefix swrlx: <http://www.w3.org/2003/11/swrlx#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+p:node1 p:edge p:node2 .
+p:node1 p:edge p:node3 .
+p:node2 p:edge p:node4 .
+p:node2 p:edge p:node3 .
+p:node3 p:edge p:node5 .
+p:node5 p:edge p:node6 .

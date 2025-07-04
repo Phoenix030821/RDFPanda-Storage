@@ -179,7 +179,7 @@ void TestDRed() {
     for (const auto& triple : insertedFacts) {
         std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
     }  
-    engine.leapfrogDRedCounting(deletedFacts, insertedFacts);
+    engine.leapfrogDRed(deletedFacts, insertedFacts);
 
     // 查询推理结果
     std::cout << "After DRed, query results:" << std::endl;
@@ -298,6 +298,158 @@ void startTimer() {
     std::cout << "Elapsed time: " << elapsed.count() << " seconds" << std::endl;
 }
 
+void compareResults(const std::vector<Triple>& original, const std::vector<Triple>& newResult) {
+    if (original.size() != newResult.size()) {
+        std::cout << "Results differ in size!" << std::endl;
+        return;
+    }
+
+    std::set<Triple> originalSet(original.begin(), original.end());
+    std::set<Triple> newResultSet(newResult.begin(), newResult.end());
+    if (originalSet == newResultSet) {
+        std::cout << "Results are the same!" << std::endl;
+    } else {
+        std::cout << "Results differ!" << std::endl;
+        std::cout << "Original results:" << std::endl;
+        for (const auto& triple : original) {
+            std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+        }
+        std::cout << "New results:" << std::endl;
+        for (const auto& triple : newResult) {
+            std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+        }
+    }
+}
+
+void testDRedLarge() {
+    InputParser parser;
+    TripleStore store;
+
+    std::vector<Triple> triples = parser.parseTurtle("../input_examples/DAG_20k.ttl");
+    std::cout << "Total triples: " << triples.size() << std::endl;
+
+    for (const auto& triple : triples) {
+        store.addTriple(triple);
+    }
+
+
+    
+    std::vector<Rule> rules = parser.parseDatalogFromFile("../input_examples/DAG-R.dl");
+
+    auto start = std::chrono::high_resolution_clock::now();
+    DatalogEngine engine(store, rules);
+    engine.reasonNaive();
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "Elapsed time for reasoning: " << elapsed.count() << " seconds" << std::endl;
+    std::cout << "Total triples in store: " << store.getAllTriples().size() << std::endl;
+
+    std::vector<Triple> deletedFacts;
+    for(const auto& triple : triples) {
+        int randNum = rand() % 100;
+        if (randNum < 1) { // 10%的概率删除
+            deletedFacts.push_back(triple);
+            triples.erase(std::remove(triples.begin(), triples.end(), triple), triples.end());
+        }
+    }
+
+    printf("Deleted facts: %zu\n", deletedFacts.size());
+    std::vector<Triple> insertedFacts;
+    start = std::chrono::high_resolution_clock::now();
+
+    engine.leapfrogDRed(deletedFacts, insertedFacts);
+    // engine.leapfrogDRedCounting(deletedFacts, insertedFacts);
+
+    // std::vector<Triple> deletedFacts = parser.parseTurtle("../input_examples/DAG-del.ttl");
+    // std::vector<Triple> insertedFacts = parser.parseTurtle("../input_examples/DAG-ins.ttl");
+    // engine.leapfrogDRed(deletedFacts, insertedFacts);
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "Elapsed time for DRed: " << elapsed.count() << " seconds" << std::endl;
+    TripleStore newStore;
+    for(const auto& triple : triples) {
+        newStore.addTriple(triple);
+    }
+    DatalogEngine newEngine(newStore, rules);
+    start = std::chrono::high_resolution_clock::now();
+    newEngine.reasonNaive();
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "Elapsed time for new reasoning: " << elapsed.count() << " seconds" << std::endl;
+
+    // std::vector<Triple> allTriples = store.getAllTriples();
+    // printf("Total triples in original store: %zu\n", allTriples.size());
+    // for(const auto& triple : allTriples) {
+    //     printf("(%s, %s, %s)\n", triple.subject.c_str(), triple.predicate.c_str(), triple.object.c_str());
+    // }
+    std::vector<Triple> queryResult = store.queryByPredicate("http://dag.org#path");
+    std::vector<Triple> newQueryResult = newStore.queryByPredicate("http://dag.org#path");
+    compareResults(queryResult, newQueryResult);
+}
+
+void testDRedDAG() {
+    InputParser parser;
+    TripleStore store;
+
+    std::vector<Triple> triples = parser.parseTurtle("../input_examples/DAG_test.ttl");
+    std::cout << "Total triples: " << triples.size() << std::endl;
+
+    for (const auto& triple : triples) {
+        store.addTriple(triple);
+    }
+
+
+    
+    std::vector<Rule> rules = parser.parseDatalogFromFile("../input_examples/DAG-R.dl");
+
+    auto start = std::chrono::high_resolution_clock::now();
+    DatalogEngine engine(store, rules);
+    engine.reasonNaive();
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "Elapsed time for reasoning: " << elapsed.count() << " seconds" << std::endl;
+    std::cout << "Total triples in store: " << store.getAllTriples().size() << std::endl;
+
+    std::vector<Triple> deletedFacts = parser.parseTurtle("../input_examples/DAG_del.ttl");
+    for(const auto& triple : deletedFacts) {
+        triples.erase(std::remove(triples.begin(), triples.end(), triple), triples.end());
+    }
+
+    std::vector<Triple> insertedFacts;
+    start = std::chrono::high_resolution_clock::now();
+
+    // engine.leapfrogDRed(deletedFacts, insertedFacts);
+    engine.leapfrogDRedCounting(deletedFacts, insertedFacts);
+
+    // std::vector<Triple> deletedFacts = parser.parseTurtle("../input_examples/DAG-del.ttl");
+    // std::vector<Triple> insertedFacts = parser.parseTurtle("../input_examples/DAG-ins.ttl");
+    // engine.leapfrogDRed(deletedFacts, insertedFacts);
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "Elapsed time for DRed: " << elapsed.count() << " seconds" << std::endl;
+    TripleStore newStore;
+    for(const auto& triple : triples) {
+        newStore.addTriple(triple);
+    }
+    DatalogEngine newEngine(newStore, rules);
+    start = std::chrono::high_resolution_clock::now();
+    newEngine.reasonNaive();
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "Elapsed time for new reasoning: " << elapsed.count() << " seconds" << std::endl;
+
+    // std::vector<Triple> allTriples = store.getAllTriples();
+    // printf("Total triples in original store: %zu\n", allTriples.size());
+    // for(const auto& triple : allTriples) {
+    //     printf("(%s, %s, %s)\n", triple.subject.c_str(), triple.predicate.c_str(), triple.object.c_str());
+    // }
+    std::vector<Triple> queryResult = store.queryByPredicate("http://dag.org#path");
+    std::vector<Triple> newQueryResult = newStore.queryByPredicate("http://dag.org#path");
+    compareResults(queryResult, newQueryResult);
+}
+
 int main() {
 
     // TestInfer();
@@ -305,7 +457,8 @@ int main() {
     // TestLargeFile();
     // startTimer();
     // TestMillionTriples();
-    TestDRed();
-
+    // TestDRed();
+    testDRedLarge();
+    // testDRedDAG();
     return 0;
 }

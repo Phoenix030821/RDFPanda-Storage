@@ -31,7 +31,7 @@ public:
     std::vector<Triple> queryBySubject(const std::string& subject);
     std::vector<Triple> queryByPredicate(const std::string& predicate);
     std::vector<Triple> queryByObject(const std::string& object);
-    const std::vector<Triple>& getAllTriples() const { return triples; }
+    std::vector<Triple> getAllTriples() const;
 
     TrieNode* getNodeByTriple(const Triple& triple) const;
 

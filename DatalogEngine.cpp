@@ -323,10 +323,10 @@ void DatalogEngine::reasonNaive() {
         std::vector<Triple> newFacts;
         std::map<std::string, std::string> bindings;
         leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, newFacts, bindings);
-        printf("New facts derived from rule (%s): %zu\n", rule.name.c_str(), newFacts.size());
-        for(const auto& newFact : newFacts) {
-            printf("(%s, %s, %s)\n", newFact.subject.c_str(), newFact.predicate.c_str(), newFact.object.c_str());
-        }
+        // printf("New facts derived from rule (%s): %zu\n", rule.name.c_str(), newFacts.size());
+        // for(const auto& newFact : newFacts) {
+        //     printf("(%s, %s, %s)\n", newFact.subject.c_str(), newFact.predicate.c_str(), newFact.object.c_str());
+        // }
         for (const auto& triple : newFacts) {
             if (store.getNodeByTriple(triple) == nullptr) {
                 // store.addTriple(triple);
@@ -349,10 +349,10 @@ void DatalogEngine::reasonNaive() {
         std::vector<Triple> newFacts;
         std::map<std::string, std::string> bindings;
         leapfrogTriejoin(store.getTriePSORoot(), store.getTriePOSRoot(), rule, newFacts, bindings);
-        printf("New facts derived from rule (%s): %zu\n", rule.name.c_str(), newFacts.size());
-        for(const auto& newFact : newFacts) {
-            printf("(%s, %s, %s)\n", newFact.subject.c_str(), newFact.predicate.c_str(), newFact.object.c_str());
-        }
+        // printf("New facts derived from rule (%s): %zu\n", rule.name.c_str(), newFacts.size());
+        // for(const auto& newFact : newFacts) {
+        //     printf("(%s, %s, %s)\n", newFact.subject.c_str(), newFact.predicate.c_str(), newFact.object.c_str());
+        // }
         for (const auto& triple : newFacts) {
             if (store.getNodeByTriple(triple) == nullptr) {
                 // store.addTriple(triple);
@@ -395,9 +395,9 @@ void DatalogEngine::reasonNaive() {
                 size_t patternIdx = rulePair.second;
                 const Rule& rule = recursiveRules[ruleIdx];
                 const Triple& pattern = rule.body[patternIdx];
-                printf("Applying rule: %s\n", rule.name.c_str());
-                printf("Pattern: (%s, %s, %s)\n", pattern.subject.c_str(), pattern.predicate.c_str(), pattern.object.c_str());
-                // 绑定变量
+                // printf("Applying rule: %s\n", rule.name.c_str());
+                // printf("Pattern: (%s, %s, %s)\n", pattern.subject.c_str(), pattern.predicate.c_str(), pattern.object.c_str());
+                // // 绑定变量
                 std::map<std::string, std::string> bindings;
                 if (isVariable(pattern.subject)) {
                     bindings[pattern.subject] = currentTriple.subject;
@@ -419,12 +419,12 @@ void DatalogEngine::reasonNaive() {
                             newFactQueue.push(fact);
                             // printf("New fact added: (%s, %s, %s)\n", triple.subject.c_str(), triple.predicate.c_str(), triple.object.c_str());
                         }
-                        // reasonCount++;
-                        if(recursiveNum.find(fact) == recursiveNum.end()) {
-                            recursiveNum[fact] = 1;
-                        } else {
-                            recursiveNum[fact]++;
-                        }
+                    }
+                    // reasonCount++;
+                    if(recursiveNum.find(fact) == recursiveNum.end()) {
+                        recursiveNum[fact] = 1;
+                    } else {
+                        recursiveNum[fact]++;
                     }
                 }
             }
@@ -437,9 +437,9 @@ void DatalogEngine::reasonNaive() {
                 size_t patternIdx = rulePair.second;
                 const Rule& rule = nonrecursiveRules[ruleIdx];
                 const Triple& pattern = rule.body[patternIdx];
-                printf("Applying rule: %s\n", rule.name.c_str());
-                printf("Pattern: (%s, %s, %s)\n", pattern.subject.c_str(), pattern.predicate.c_str(), pattern.object.c_str());
-                // 绑定变量
+                // printf("Applying rule: %s\n", rule.name.c_str());
+                // printf("Pattern: (%s, %s, %s)\n", pattern.subject.c_str(), pattern.predicate.c_str(), pattern.object.c_str());
+                // // 绑定变量
                 std::map<std::string, std::string> bindings;
                 if (isVariable(pattern.subject)) {
                     bindings[pattern.subject] = currentTriple.subject;
@@ -475,16 +475,16 @@ void DatalogEngine::reasonNaive() {
 
     // 输出推理完成后的事实库大小
     std::cout << "Total triples in store:           " << store.getAllTriples().size() << std::endl;
-    auto it = recursiveNum.begin();
-    std::cout << "Total recursive triples:          " << recursiveNum.size() << std::endl;
-    for(; it != recursiveNum.end(); it++) {
-        std::cout << it->first.subject << " " << it->first.predicate << " " << it->first.object << " : " << it->second << std::endl;
-    }
-    it = nonrecursiveNum.begin();
-    std::cout << "Total nonrecursive triples:       " << nonrecursiveNum.size() << std::endl;
-    for(; it != nonrecursiveNum.end(); it++) {
-        std::cout << it->first.subject << " " << it->first.predicate << " " << it->first.object << " : " << it->second << std::endl;
-    }
+    // auto it = recursiveNum.begin();
+    // std::cout << "Total recursive triples:          " << recursiveNum.size() << std::endl;
+    // for(; it != recursiveNum.end(); it++) {
+    //     std::cout << it->first.subject << " " << it->first.predicate << " " << it->first.object << " : " << it->second << std::endl;
+    // }
+    // it = nonrecursiveNum.begin();
+    // std::cout << "Total nonrecursive triples:       " << nonrecursiveNum.size() << std::endl;
+    // for(; it != nonrecursiveNum.end(); it++) {
+    //     std::cout << it->first.subject << " " << it->first.predicate << " " << it->first.object << " : " << it->second << std::endl;
+    // }
 
 }
 
@@ -494,9 +494,9 @@ void DatalogEngine::leapfrogDRed(std::vector<Triple>& deletedFacts, std::vector<
     std::vector<Triple> overdeletedFacts;
     overdeleteDRed(overdeletedFacts, deletedFacts);
     printf("Overdeleted facts: %zu\n", overdeletedFacts.size());
-    for(const auto& fact: overdeletedFacts) {
-        printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
-    }
+    // for(const auto& fact: overdeletedFacts) {
+    //     printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
+    // }
 
     // one-step redrive
     std::vector<Triple> redrivedFacts;
@@ -536,14 +536,14 @@ void DatalogEngine::leapfrogDRed(std::vector<Triple>& deletedFacts, std::vector<
 
     
     printf("Redrived facts: %zu\n", redrivedFacts.size());
-    for(const auto& fact: redrivedFacts) {
-        printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
-    }
-    for(const auto& fact: redrivedFacts) {
-        if (store.getNodeByTriple(fact) == nullptr) {
-            store.addTriple(fact);
-        }
-    }
+    // for(const auto& fact: redrivedFacts) {
+    //     printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
+    // }
+    // for(const auto& fact: redrivedFacts) {
+    //     if (store.getNodeByTriple(fact) == nullptr) {
+    //         store.addTriple(fact);
+    //     }
+    // }
 
     // insert
     insertDRed(insertedFacts, redrivedFacts);
@@ -555,6 +555,8 @@ void DatalogEngine::leapfrogDRed(std::vector<Triple>& deletedFacts, std::vector<
     for(const auto& fact: insertedFacts) {
         originalStore.addTriple(fact);
     }
+
+    printf("Total triples in store: %zu\n", store.getAllTriples().size());
 
 }
 
@@ -659,6 +661,7 @@ void DatalogEngine::insertDRed(std::vector<Triple> newFacts, std::vector<Triple>
         // if delta_A = empty set   break
         if(deltaA.empty())
             break;
+        printf("Delta A size: %zu\n", deltaA.size());
         // A = A U delta_A
         for (const auto& fact : deltaA) {
             if(store.getNodeByTriple(fact) == nullptr) {
@@ -707,9 +710,9 @@ void DatalogEngine::insertDRed(std::vector<Triple> newFacts, std::vector<Triple>
     }
 
     printf("Inserted facts: %zu\n", allInsertedFacts.size());
-    for(const auto& fact: allInsertedFacts) {
-        printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
-    }
+    // for(const auto& fact: allInsertedFacts) {
+    //     printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
+    // }
 
 }
 
@@ -717,7 +720,7 @@ void DatalogEngine::leapfrogDRedCounting(std::vector<Triple>& deletedFacts, std:
     // overdelete
     std::vector<Triple> overdeletedFacts;
     overdeleteDRedCounting(overdeletedFacts, deletedFacts);
-    // printf("Overdeleted facts: %zu\n", overdeletedFacts.size());
+    printf("Overdeleted facts: %zu\n", overdeletedFacts.size());
     // for(const auto& fact: overdeletedFacts) {
     //     printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
     // }
@@ -739,9 +742,9 @@ void DatalogEngine::leapfrogDRedCounting(std::vector<Triple>& deletedFacts, std:
 
     
     printf("Redrived facts: %zu\n", redrivedFacts.size());
-    for(const auto& fact: redrivedFacts) {
-        printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
-    }
+    // for(const auto& fact: redrivedFacts) {
+    //     printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
+    // }
     // for(const auto& fact: redrivedFacts) {
     //     if (store.getNodeByTriple(fact) == nullptr) {
     //         store.addTriple(fact);
@@ -759,6 +762,8 @@ void DatalogEngine::leapfrogDRedCounting(std::vector<Triple>& deletedFacts, std:
         originalStore.addTriple(fact);
     }
     
+    printf("Total triples in store: %zu\n", store.getAllTriples().size());
+
 }
 
 void DatalogEngine::overdeleteDRedCounting(std::vector<Triple> &overdeletedFacts, std::vector<Triple> deletedFacts) {
@@ -791,7 +796,7 @@ void DatalogEngine::overdeleteDRedCounting(std::vector<Triple> &overdeletedFacts
 
         inferredFactsSet.clear();
         // N_D = PI[I - D : delta_D]
-        printf("delta D: %zu\n", deltaD.size());
+        // printf("delta D: %zu\n", deltaD.size());
         for (const auto& triple : deltaD) {
             // printf("Processing triple: (%s, %s, %s)\n", triple.subject.c_str(), triple.predicate.c_str(), triple.object.c_str());
             // 根据谓语查找规则
@@ -995,9 +1000,9 @@ void DatalogEngine::insertDRedCounting(std::vector<Triple> newFacts, std::vector
     }
 
     printf("Inserted facts: %zu\n", allInsertedFacts.size());
-    for(const auto& fact: allInsertedFacts) {
-        printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
-    }
+    // for(const auto& fact: allInsertedFacts) {
+    //     printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
+    // }
 
 }
 bool DatalogEngine::isVariable(const std::string& term) {
@@ -1221,10 +1226,7 @@ void DatalogEngine::join_by_variable(
     if (!iterators.empty()) {
         LeapfrogJoin lf(iterators);
         while (!lf.atEnd()) {
-            if(lf.key().empty()) {
-                lf.next();
-                continue; // 跳过空key
-            }
+
             std::string key = lf.key();
             bindings[currentVar] = key;  // 将当前变量绑定到迭代器的key上
             // 递归处理下一个变量

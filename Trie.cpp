@@ -48,6 +48,10 @@ void Trie::deletePSO(const Triple& triple) {
             parent->children.erase(keys.back()); // 删除最后一个键对应的子节点
             delete curr; // 释放内存
         }
+        else {
+            printf("Warning: Deleting PSO triple (%s, %s, %s) but node has children, not deleting node.\n",
+                   triple.subject.c_str(), triple.predicate.c_str(), triple.object.c_str());
+        }
     }
 }
 

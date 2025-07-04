@@ -102,6 +102,12 @@ public:
     }
 
     std::string key() const {
+        if(atEnd()) {
+            return ""; // 如果迭代器已到末尾，返回空字符串
+        }
+        if(it->first.empty()) {
+            return ""; // 如果当前 key 为空，返回空字符串
+        }
         return it->first;
     }
 
