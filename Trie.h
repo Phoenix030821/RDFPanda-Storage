@@ -77,9 +77,13 @@ public:
     void deletePSO(const Triple& triple);
     void deletePOS(const Triple& triple);
     void printAll();
+    std::vector<Triple> getAllTriples() const;
+    std::vector<Triple> queryBySubject(const std::string& subject) const;
+    std::vector<Triple> queryByPredicate(const std::string& predicate) const;
 
 private:
     void printAllHelper(TrieNode* node, std::vector<std::string>& binding);
+    void getAllTriplesHelper(TrieNode* node, std::vector<std::string>& binding, std::vector<Triple>& triples) const;
 
 };
 

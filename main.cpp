@@ -358,8 +358,8 @@ void testDRedLarge() {
     std::vector<Triple> insertedFacts;
     start = std::chrono::high_resolution_clock::now();
 
-    engine.leapfrogDRed(deletedFacts, insertedFacts);
-    // engine.leapfrogDRedCounting(deletedFacts, insertedFacts);
+    // engine.leapfrogDRed(deletedFacts, insertedFacts);
+    engine.leapfrogDRedCounting(deletedFacts, insertedFacts);
 
     // std::vector<Triple> deletedFacts = parser.parseTurtle("../input_examples/DAG-del.ttl");
     // std::vector<Triple> insertedFacts = parser.parseTurtle("../input_examples/DAG-ins.ttl");
@@ -386,6 +386,9 @@ void testDRedLarge() {
     std::vector<Triple> queryResult = store.queryByPredicate("http://dag.org#path");
     std::vector<Triple> newQueryResult = newStore.queryByPredicate("http://dag.org#path");
     compareResults(queryResult, newQueryResult);
+
+    std::vector<Triple> queryResult2 = store.queryBySubject("http://dag.org#node1");
+    std::vector<Triple> newQueryResult2 = store.getAllTriples();
 }
 
 void testDRedDAG() {

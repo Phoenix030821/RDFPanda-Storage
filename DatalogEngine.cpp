@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <map>
 #include <set>
+#include <unordered_set>
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -10,6 +11,18 @@
 #include "DatalogEngine.h"
 
 #include <queue>
+
+namespace std {
+    template <>
+    struct hash<Triple> {
+        size_t operator()(const Triple& triple) const noexcept{
+            size_t h1 = hash<string>()(triple.subject);
+            size_t h2 = hash<string>()(triple.predicate);
+            size_t h3 = hash<string>()(triple.object);
+            return h1 ^ (h2 << 1) ^ (h3 << 2);
+        }
+    };
+}
 
 void DatalogEngine::initiateRulesMap() {
     // 建立规则关于规则体中各模式三元组的谓语的索引，方便迭代中用三元组触发规则的应用
@@ -494,10 +507,10 @@ void DatalogEngine::leapfrogDRed(std::vector<Triple>& deletedFacts, std::vector<
     std::vector<Triple> overdeletedFacts;
     overdeleteDRed(overdeletedFacts, deletedFacts);
     printf("Overdeleted facts: %zu\n", overdeletedFacts.size());
+
     // for(const auto& fact: overdeletedFacts) {
     //     printf("(%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
     // }
-
     // one-step redrive
     std::vector<Triple> redrivedFacts;
     for(auto& fact: overdeletedFacts) {
@@ -548,6 +561,7 @@ void DatalogEngine::leapfrogDRed(std::vector<Triple>& deletedFacts, std::vector<
     // insert
     insertDRed(insertedFacts, redrivedFacts);
 
+
     for(const auto& fact: deletedFacts) {
         originalStore.deleteTriple(fact);
     }
@@ -565,16 +579,14 @@ void DatalogEngine::overdeleteDRed(std::vector<Triple> &overdeletedFacts, std::v
     // N_D inferredFactsSet
     // delta_D deletedFacts
     // 对每个删除的事实，检查是否有规则可以应用
-    std::set<Triple> overdeletedFactsSet;
-    std::set<Triple> inferredFactsSet;
-    
+    std::unordered_set<Triple> overdeletedFactsSet; // 用于存储已overdelete的事实
+    std::unordered_set<Triple> inferredFactsSet;
     // N_D = E-
     for(auto& fact: deletedFacts) {
         if (store.getNodeByTriple(fact) != nullptr) {
             inferredFactsSet.insert(fact);
         }
     }
-
     while(true) {
         std::vector<Triple> deltaD;
         // delta_D = N_D - D
@@ -629,6 +641,7 @@ void DatalogEngine::overdeleteDRed(std::vector<Triple> &overdeletedFacts, std::v
             //推理出的事实加入到overdeletedFacts
             overdeletedFactsSet.insert(fact);
         }
+        
     }
 
     for(const auto& fact : overdeletedFactsSet) {
@@ -637,6 +650,7 @@ void DatalogEngine::overdeleteDRed(std::vector<Triple> &overdeletedFacts, std::v
             overdeletedFacts.push_back(fact);
         }
     }
+
     
 }
 
@@ -669,7 +683,7 @@ void DatalogEngine::insertDRed(std::vector<Triple> newFacts, std::vector<Triple>
                 allInsertedFacts.push_back(fact);
             }
         }
-        std::set<Triple> inferredFactsSet;
+        std::unordered_set<Triple> inferredFactsSet;
         for (const auto& triple : deltaA) {
             // 根据谓语查找规则
             auto it = rulesMap.find(triple.predicate);
@@ -771,8 +785,8 @@ void DatalogEngine::overdeleteDRedCounting(std::vector<Triple> &overdeletedFacts
     // N_D inferredFactsSet
     // delta_D deletedFacts
     // 对每个删除的事实，检查是否有规则可以应用
-    std::multiset<Triple> overdeletedFactsSet;
-    std::set<Triple> inferredFactsSet;
+    std::unordered_multiset<Triple> overdeletedFactsSet;
+    std::unordered_set<Triple> inferredFactsSet;
     
     // N_D = E-
     for(auto& fact: deletedFacts) {
@@ -921,7 +935,7 @@ void DatalogEngine::insertDRedCounting(std::vector<Triple> newFacts, std::vector
                 allInsertedFacts.push_back(fact);
             }
         }
-        std::set<Triple> inferredFactsSet;
+        std::unordered_set<Triple> inferredFactsSet;
         for (const auto& triple : deltaA) {
             // 根据谓语查找规则
             auto it = nonrecursiveRulesMap.find(triple.predicate);

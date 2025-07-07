@@ -77,11 +77,56 @@ void Trie::deletePOS(const Triple& triple) {
     }
 }
 
+std::vector<Triple> Trie::getAllTriples() const {
+    std::vector<Triple> triples;
+    std::vector<std::string> binding;
+    getAllTriplesHelper(root, binding, triples);
+    return triples;
+}
 
 // 仅用于调试，遍历并打印 Trie 中所有存储的三元组
 void Trie::printAll() {
     std::vector<std::string> binding;
     printAllHelper(root, binding);
+}
+
+std::vector<Triple> Trie::queryByPredicate(const std::string& predicate) const {
+    std::vector<Triple> result;
+    TrieNode* curr = root;
+    for (const auto& pair : curr->children) {
+        if (pair.first == predicate) {
+            // 找到匹配的 predicate，继续遍历子节点
+            std::vector<std::string> binding = { pair.first }; // 先添加 predicate
+            getAllTriplesHelper(pair.second, binding, result);
+        }
+    }
+    return result;
+}
+
+std::vector<Triple> Trie::queryBySubject(const std::string& subject) const {
+    std::vector<Triple> result;
+    TrieNode* curr = root;
+    for (const auto& pair : curr->children) {
+        // 遍历所有子节点，查找匹配的 subject
+        if (pair.second->children.find(subject) != pair.second->children.end()) {
+            std::vector<std::string> binding = { pair.first, subject }; // 先添加 predicate 和 subject
+            getAllTriplesHelper(pair.second->children[subject], binding, result);
+        }
+    }
+    return result;
+}
+
+void Trie::getAllTriplesHelper(TrieNode* node, std::vector<std::string>& binding, std::vector<Triple>& triples) const {
+    if (binding.size() == 3 && node->isEnd) {
+        // binding 中顺序为 [predicate, subject, object]，
+        // 但 Triple 构造函数要求 (subject, predicate, object)
+        triples.emplace_back(binding[1], binding[0], binding[2]);
+    }
+    for (auto& pair : node->children) {
+        binding.push_back(pair.first);
+        getAllTriplesHelper(pair.second, binding, triples);
+        binding.pop_back();
+    }
 }
 
 void Trie::printAllHelper(TrieNode* node, std::vector<std::string>& binding) {
