@@ -675,7 +675,7 @@ void DatalogEngine::insertDRed(std::vector<Triple> newFacts, std::vector<Triple>
         // if delta_A = empty set   break
         if(deltaA.empty())
             break;
-        printf("Delta A size: %zu\n", deltaA.size());
+        // printf("Delta A size: %zu\n", deltaA.size());
         // A = A U delta_A
         for (const auto& fact : deltaA) {
             if(store.getNodeByTriple(fact) == nullptr) {
@@ -800,7 +800,7 @@ void DatalogEngine::overdeleteDRedCounting(std::vector<Triple> &overdeletedFacts
         std::vector<Triple> deltaD;
         // delta_D = N_D - D
         for(const auto& triple: inferredFactsSet) {
-            if(overdeletedFactsSet.find(triple) == overdeletedFactsSet.end() && nonrecursiveNum[triple] == 0) {
+            if(overdeletedFactsSet.find(triple) == overdeletedFactsSet.end() && (nonrecursiveNum.find(triple) == nonrecursiveNum.end() || nonrecursiveNum[triple] == 0)) {
                 deltaD.push_back(triple);
             }
         }
@@ -808,7 +808,7 @@ void DatalogEngine::overdeleteDRedCounting(std::vector<Triple> &overdeletedFacts
         if(deltaD.empty())
             break;
 
-        inferredFactsSet.clear();
+        // inferredFactsSet.clear();
         // N_D = PI[I - D : delta_D]
         // printf("delta D: %zu\n", deltaD.size());
         for (const auto& triple : deltaD) {
@@ -871,17 +871,19 @@ void DatalogEngine::overdeleteDRedCounting(std::vector<Triple> &overdeletedFacts
                     for(const auto& fact : inferredFacts) {
                         // printf("Inferred fact: (%s, %s, %s)\n", fact.subject.c_str(), fact.predicate.c_str(), fact.object.c_str());
                         recursiveNum[fact]--;
-                        if (store.getNodeByTriple(fact) != nullptr) {
-                            inferredFactsSet.insert(fact);
-                        }
+                        inferredFactsSet.insert(fact);
+                        // if (store.getNodeByTriple(fact) != nullptr) {
+                        //     inferredFactsSet.insert(fact);
+                        // }
                     }
                 }
             }
+            store.deleteTriple(triple);
         }
-        // I -= delta_D
-        for(const auto& fact: deltaD) {
-            store.deleteTriple(fact);
-        }
+        // // I -= delta_D
+        // for(const auto& fact: deltaD) {
+        //     store.deleteTriple(fact);
+        // }
         // D = D U delta_D
         for (const auto& fact : deltaD) {
             //推理出的事实加入到overdeletedFacts

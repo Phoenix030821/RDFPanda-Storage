@@ -301,7 +301,7 @@ void startTimer() {
 void compareResults(const std::vector<Triple>& original, const std::vector<Triple>& newResult) {
     if (original.size() != newResult.size()) {
         std::cout << "Results differ in size!" << std::endl;
-        return;
+        // return;
     }
 
     std::set<Triple> originalSet(original.begin(), original.end());
@@ -310,13 +310,24 @@ void compareResults(const std::vector<Triple>& original, const std::vector<Tripl
         std::cout << "Results are the same!" << std::endl;
     } else {
         std::cout << "Results differ!" << std::endl;
-        std::cout << "Original results:" << std::endl;
-        for (const auto& triple : original) {
-            std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+        // std::cout << "Original results:" << std::endl;
+        // for (const auto& triple : original) {
+        //     std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+        // }
+        // std::cout << "New results:" << std::endl;
+        // for (const auto& triple : newResult) {
+        //     std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+        // }
+        std::cout << "Different results:" << std::endl;
+        for (const auto& triple : originalSet) {
+            if (newResultSet.find(triple) == newResultSet.end()) {
+                std::cout << "Original: " << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+            }
         }
-        std::cout << "New results:" << std::endl;
-        for (const auto& triple : newResult) {
-            std::cout << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+        for (const auto& triple : newResultSet) {
+            if (originalSet.find(triple) == originalSet.end()) {
+                std::cout << "New: " << triple.subject << " " << triple.predicate << " " << triple.object << std::endl;
+            }
         }
     }
 }
@@ -334,7 +345,7 @@ void testDRedLarge() {
 
 
     
-    std::vector<Rule> rules = parser.parseDatalogFromFile("../input_examples/DAG-R.dl");
+    std::vector<Rule> rules = parser.parseDatalogFromFile("../input_examples/DAG-N.dl");
 
     auto start = std::chrono::high_resolution_clock::now();
     DatalogEngine engine(store, rules);
@@ -348,7 +359,7 @@ void testDRedLarge() {
     std::vector<Triple> deletedFacts;
     for(const auto& triple : triples) {
         int randNum = rand() % 100;
-        if (randNum < 1) { // 10%的概率删除
+        if (randNum < 10) { // 10%的概率删除
             deletedFacts.push_back(triple);
             triples.erase(std::remove(triples.begin(), triples.end(), triple), triples.end());
         }
@@ -423,8 +434,8 @@ void testDRedDAG() {
     std::vector<Triple> insertedFacts;
     start = std::chrono::high_resolution_clock::now();
 
-    // engine.leapfrogDRed(deletedFacts, insertedFacts);
-    engine.leapfrogDRedCounting(deletedFacts, insertedFacts);
+    engine.leapfrogDRed(deletedFacts, insertedFacts);
+    // engine.leapfrogDRedCounting(deletedFacts, insertedFacts);
 
     // std::vector<Triple> deletedFacts = parser.parseTurtle("../input_examples/DAG-del.ttl");
     // std::vector<Triple> insertedFacts = parser.parseTurtle("../input_examples/DAG-ins.ttl");

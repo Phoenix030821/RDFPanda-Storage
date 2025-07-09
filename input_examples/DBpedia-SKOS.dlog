@@ -1,0 +1,49 @@
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+<http://www.w3.org/2004/02/skos/core#Collection>[?X] :- <http://www.w3.org/2004/02/skos/core#OrderedCollection>[?X] .
+<http://www.w3.org/2004/02/skos/core#broader>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#broadMatch>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#mappingRelation>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#broadMatch>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#narrowMatch>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#broadMatch>[?Y,?X] .
+<http://www.w3.org/2004/02/skos/core#broadMatch>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#narrowMatch>[?Y,?X] .
+<http://www.w3.org/2004/02/skos/core#broaderTransitive>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#broader>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#narrower>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#broader>[?Y,?X] .
+<http://www.w3.org/2004/02/skos/core#broader>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#narrower>[?Y,?X] .
+<http://www.w3.org/2004/02/skos/core#semanticRelation>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#broaderTransitive>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#narrowerTransitive>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#broaderTransitive>[?Y,?X] .
+<http://www.w3.org/2004/02/skos/core#broaderTransitive>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#narrowerTransitive>[?Y,?X] .
+<http://www.w3.org/2004/02/skos/core#broaderTransitive>[?X,?Z] :- <http://www.w3.org/2004/02/skos/core#broaderTransitive>[?X,?Y], <http://www.w3.org/2004/02/skos/core#broaderTransitive>[?Y,?Z] .
+<http://www.w3.org/2004/02/skos/core#mappingRelation>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#closeMatch>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#closeMatch>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#closeMatch>[?Y,?X] .
+<http://www.w3.org/2004/02/skos/core#closeMatch>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#exactMatch>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#exactMatch>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#exactMatch>[?Y,?X] .
+<http://www.w3.org/2004/02/skos/core#exactMatch>[?X,?Z] :- <http://www.w3.org/2004/02/skos/core#exactMatch>[?X,?Y], <http://www.w3.org/2004/02/skos/core#exactMatch>[?Y,?Z] .
+<http://www.w3.org/2004/02/skos/core#topConceptOf>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#hasTopConcept>[?Y,?X] .
+<http://www.w3.org/2004/02/skos/core#hasTopConcept>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#topConceptOf>[?Y,?X] .
+<http://www.w3.org/2004/02/skos/core#ConceptScheme>[?X] :- <http://www.w3.org/2004/02/skos/core#hasTopConcept>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#Concept>[?Y] :- <http://www.w3.org/2004/02/skos/core#hasTopConcept>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#ConceptScheme>[?Y] :- <http://www.w3.org/2004/02/skos/core#inScheme>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#semanticRelation>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#mappingRelation>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#Collection>[?X] :- <http://www.w3.org/2004/02/skos/core#member>[?X,?Y] .
+owl:sameAs[?Y,?Z] :- <http://www.w3.org/2004/02/skos/core#memberList>[?X,?Y], <http://www.w3.org/2004/02/skos/core#memberList>[?X,?Z] .
+<http://www.w3.org/2004/02/skos/core#OrderedCollection>[?X] :- <http://www.w3.org/2004/02/skos/core#memberList>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#mappingRelation>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#narrowMatch>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#narrower>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#narrowMatch>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#narrowerTransitive>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#narrower>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#semanticRelation>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#narrowerTransitive>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#narrowerTransitive>[?X,?Z] :- <http://www.w3.org/2004/02/skos/core#narrowerTransitive>[?X,?Y], <http://www.w3.org/2004/02/skos/core#narrowerTransitive>[?Y,?Z] .
+<http://www.w3.org/2004/02/skos/core#semanticRelation>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#related>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#related>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#related>[?Y,?X] .
+<http://www.w3.org/2004/02/skos/core#mappingRelation>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#relatedMatch>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#related>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#relatedMatch>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#relatedMatch>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#relatedMatch>[?Y,?X] .
+<http://www.w3.org/2004/02/skos/core#Concept>[?X] :- <http://www.w3.org/2004/02/skos/core#semanticRelation>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#Concept>[?Y] :- <http://www.w3.org/2004/02/skos/core#semanticRelation>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#inScheme>[?X,?Y] :- <http://www.w3.org/2004/02/skos/core#topConceptOf>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#Concept>[?X] :- <http://www.w3.org/2004/02/skos/core#topConceptOf>[?X,?Y] .
+<http://www.w3.org/2004/02/skos/core#ConceptScheme>[?Y] :- <http://www.w3.org/2004/02/skos/core#topConceptOf>[?X,?Y] .
+
+
+
